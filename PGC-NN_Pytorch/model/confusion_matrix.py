@@ -1,5 +1,4 @@
 
-
 class ConfusionMatrix:
 
     def __init__(self, poi_type='all types'):
@@ -12,21 +11,21 @@ class ConfusionMatrix:
         self.total_users_inverted_routine_tp = 0
 
     def add_tp(self):
-        self.tp+=1
+        self.t p+ =1
 
     def add_fp(self):
-        self.fp+=1
+        self.f p+ =1
 
     def add_tn(self):
-        self.tn+=1
+        self.t n+ =1
 
     def add_fn(self):
-        self.fn+=1
+        self.f n+ =1
 
     def classification_report(self):
-        precision = self.tp/(self.tp + self.fp)
-        recall = self.tp/(self.tp + self.fn)
-        fscore = 2*(precision*recall)/(precision+recall)
+        precision = self.t p /(self.tp + self.fp)
+        recall = self.t p /(self.tp + self.fn)
+        fscore = 2* (precision * recall) / (precision + recall)
         print("---------")
         print("\nPoi type: ", self.poi_type)
         print("\nPrecision: ", precision)
@@ -40,13 +39,13 @@ class ConfusionMatrix:
         self.total_samples_of_poi_type += total
 
     def add_total_users_inverted_routine_tp(self):
-        self.total_users_inverted_routine_tp+=1
-    
+        self.total_users_inverted_routine_tp += 1
+
     def results(self):
-        precision = self.tp/(self.tp + self.fp)
-        recall = self.tp/(self.tp + self.fn)
-        if(precision + recall) != 0:
-            fscore = 2*(precision*recall)/(precision+recall)
-        else: 
+        precision = self.tp / (self.tp + self.fp)
+        recall = self.tp / (self.tp + self.fn)
+        if (precision + recall) != 0:
+            fscore = 2 * (precision * recall) / (precision + recall)
+        else:
             fscore = 0
         return precision, recall, fscore

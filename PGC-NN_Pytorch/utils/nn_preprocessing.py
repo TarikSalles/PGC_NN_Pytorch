@@ -1,11 +1,13 @@
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 
 from configuration.poi_categorization_configuration import PoICategorizationConfiguration
 
+
 def user_category_to_int(user_categories, dataset_name, categories_type):
-    category_to_int = PoICategorizationConfiguration().DATASET_CATEGORIES_TO_INT_OSM_CATEGORIES[1][dataset_name][categories_type]
+    category_to_int = PoICategorizationConfiguration().DATASET_CATEGORIES_TO_INT_OSM_CATEGORIES[1][dataset_name][
+        categories_type]
 
     new_user_categories = []
 
@@ -16,16 +18,16 @@ def user_category_to_int(user_categories, dataset_name, categories_type):
 
     return np.array(new_user_categories, dtype=int)
 
-def one_hot_decoding(data):
 
+def one_hot_decoding(data):
     new = []
     for e in data:
         new.append(np.argmax(e))
 
     return new
 
-def one_hot_decoding_predicted(data):
 
+def one_hot_decoding_predicted(data):
     new = []
     for e in data:
         node_label = []
@@ -36,16 +38,16 @@ def one_hot_decoding_predicted(data):
     new = np.array(new).flatten()
     return new
 
+
 import random
 
 
 def top_k_rows(data, k):
-
     row_sum = []
     for i in range(len(data)):
         row_sum.append([np.sum(data[i]), i])
 
-    row_sum = sorted(row_sum, reverse=True, key=lambda e:e[0])
+    row_sum = sorted(row_sum, reverse=True, key=lambda e: e[0])
     row_sum = row_sum[:k]
 
     row_sum = [e[1] for e in row_sum]
@@ -53,23 +55,23 @@ def top_k_rows(data, k):
 
     return np.array(row_sum)
 
-def split_graph(data, k, split):
 
+def split_graph(data, k, split):
     graph = []
 
     if data.ndim == 2:
-        for i in range(1, split+1):
-            matrix = data[k*(i - 1) : k*i, k*(i - 1) : k*i]
+        for i in range(1, split + 1):
+            matrix = data[k * (i - 1): k * i, k * (i - 1): k * i]
             graph.append(matrix)
     else:
-        for i in range(1, split+1):
-            matrix = data[k*(i - 1) : k*i]
+        for i in range(1, split + 1):
+            matrix = data[k * (i - 1): k * i]
             graph.append(matrix)
 
     return np.array(graph)
 
-def top_k_rows_category(data, k, user_category):
 
+def top_k_rows_category(data, k, user_category):
     row_sum = []
     user_unique_categories = {i: 0 for i in pd.Series(user_category).unique().tolist()}
     categories_weights = {0: 1, 1: 1, 2: 4, 3: 6, 4: 3, 5: 3, 6: 7}
@@ -80,7 +82,7 @@ def top_k_rows_category(data, k, user_category):
         row_sum.append([np.sum(data[i]), i, category, category_weight])
         user_unique_categories[user_category[i]] += 1
 
-    row_sum = sorted(row_sum, reverse=True, key=lambda e:e[3])
+    row_sum = sorted(row_sum, reverse=True, key=lambda e: e[3])
     n_rows_to_remove = len(row_sum) - k
     count = 0
 
@@ -102,11 +104,11 @@ def top_k_rows_category(data, k, user_category):
 
     return np.array(adjusted_row_sum)
 
-def top_k_rows_category_user_tracking(data, k, user_category):
 
+def top_k_rows_category_user_tracking(data, k, user_category):
     row_sum = []
     user_unique_categories = {i: 0 for i in pd.Series(user_category).unique().tolist()}
-    categories_weights = {0: 1, 1: 1, 2: 4, 3: 6, 4: 3, 5: 3, 6: 7, 7:1}
+    categories_weights = {0: 1, 1: 1, 2: 4, 3: 6, 4: 3, 5: 3, 6: 7, 7: 1}
     adjusted_row_sum = []
     for i in range(len(data)):
         category = user_category[i]
@@ -114,14 +116,14 @@ def top_k_rows_category_user_tracking(data, k, user_category):
         row_sum.append([np.sum(data[i]), i, category, category_weight])
         user_unique_categories[user_category[i]] += 1
 
-    row_sum = sorted(row_sum, reverse=True, key=lambda e:e[3])
+    row_sum = sorted(row_sum, reverse=True, key=lambda e: e[3])
     adjusted_row_sum = row_sum[:k]
     adjusted_row_sum = [i[1] for i in adjusted_row_sum]
 
     return np.array(adjusted_row_sum)
 
-def to_networkx(adjacency_matrix):
 
+def to_networkx(adjacency_matrix):
     new_adjacency_matrix = []
     for i in range(len(adjacency_matrix)):
 
@@ -133,8 +135,8 @@ def to_networkx(adjacency_matrix):
     g.add_weighted_edges_from(new_adjacency_matrix)
     return g
 
-def from_networkx(g):
 
+def from_networkx(g):
     new_adjacency_matrix = [[0 for i in range(len(list(g.Nodes)))] for j in range(len(list(g.Nodes)))]
 
     edges_list = list(g.Edges)
@@ -147,18 +149,18 @@ def from_networkx(g):
 
     return new_adjacency_matrix
 
-def top_k_rows_centrality(data, k):
 
+def top_k_rows_centrality(data, k):
     g = to_networkx(data)
     nodes_degree = g.degree(list(g.Nodes))
-    nodes_degree = sorted(nodes_degree, reverse=True, key= lambda e: e[1])
+    nodes_degree = sorted(nodes_degree, reverse=True, key=lambda e: e[1])
     idx = [i[0] for i in centrality_list]
     idx = idx[:k]
 
     return np.array(idx)
 
-def top_k_rows_order(graph, k):
 
+def top_k_rows_order(graph, k):
     new_graph = []
     # soma dos pesos de todas as arestas do grafo
     matrix_total = np.array(graph).sum()
@@ -169,28 +171,28 @@ def top_k_rows_order(graph, k):
         # Métrica 1: soma dos pesos das arestas do vértice/PoI "i".
         row_total = sum(row)
         # Métrica 1: ponderar os pesos das arestas do vértice/PoI "i" com base no peso total de todas as arestas do grafo.
-        row_total = row_total/matrix_total
+        row_total = row_total / matrix_total
         for j in range(len(row)):
 
             # Métrica 2 : contabilizar o grau do vértice/PoI "i".
             if row[j] != 0:
                 degree += 1
         # Métrica 2: grau do vértice/PoI "i" é ponderado com base na quantidade de vértices/PoIs do grafo.
-        degree = degree/len(graph)
+        degree = degree / len(graph)
 
         # Métrica resultante: aplicar as métricas 1 e 2 na fórmula do f1-score.
-        new_graph.append([i, (2*row_total*degree)/(row_total+degree)])
+        new_graph.append([i, (2 * row_total * degree) / (row_total + degree)])
 
     # Ordenar os PoIs com base na métrica resultante (quanto maior o valor, melhor)
-    new_graph = sorted(new_graph, reverse=True, key= lambda e:e[1])
+    new_graph = sorted(new_graph, reverse=True, key=lambda e: e[1])
     new_graph = [i[0] for i in new_graph]
     # retorna o grafo com os Top k PoIs.
     new_graph = new_graph[:k]
 
     return np.array(new_graph)
 
-def filter_data_by_valid_category(user_matrix, user_category, osm_categories):
 
+def filter_data_by_valid_category(user_matrix, user_category, osm_categories):
     idx = []
     for i in range(len(user_category)):
         if user_category[i] == "" or user_category[i] == " ":
@@ -206,6 +208,7 @@ def filter_data_by_valid_category(user_matrix, user_category, osm_categories):
     user_category = user_category[idx]
     return user_matrix, user_category
 
+
 def weighted_categorical_crossentropy(y_true, y_pred, weights):
     nb_cl = len(weights)
     final_mask = K.zeros_like(y_pred[:, 0])
@@ -215,3 +218,45 @@ def weighted_categorical_crossentropy(y_true, y_pred, weights):
     for c_p, c_t in product(range(nb_cl), range(nb_cl)):
         final_mask += (weights[c_t, c_p] * y_pred_max_mat[:, c_p] * y_true[:, c_t])
     return K.categorical_crossentropy(y_pred, y_true) * final_mask
+
+
+def adjacency_to_edge_index(adj_matrix):
+    edge_indices = []
+    edge_weights = []
+
+    # Iterar sobre a matriz de adjacência
+    for i in range(adj_matrix.shape[0]):
+        for j in range(adj_matrix.shape[1]):
+            if adj_matrix[i, j] != 0:
+                # Adicionar os índices da aresta e o peso
+                edge_indices.append([i, j])
+                edge_weights.append(adj_matrix[i, j])
+
+    # Convertendo as listas para numpy arrays
+    edge_indices = np.array(edge_indices)
+    edge_weights = np.array(edge_weights)
+
+    return edge_indices, edge_weights
+
+
+def array_matrices_to_array_edge_index(array_matrices: np.ndarray):
+    array_edge_indices = []
+
+    # Iterate over the adjacency matrices
+    for matrix in array_matrices:
+        edge_indices = []
+        edge_weights = []
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                if matrix[i, j] != 0:
+                    # Add the edge indices and the weight
+                    edge_indices.append([i, j])
+                    edge_weights.append(matrix[i, j])
+
+        # Converting lists to numpy arrays
+        edge_indices = np.array(edge_indices)
+        edge_weights = np.array(edge_weights)
+        array_edge_indices.append(np.array([edge_indices, edge_weights], dtype=object))
+
+    # Convert the list of numpy arrays to a single numpy array
+    return np.array(array_edge_indices, dtype=object)

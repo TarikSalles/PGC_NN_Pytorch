@@ -4,7 +4,7 @@ import pytz
 
 class MatrixGenerationForPoiCategorizationConfiguration(Enum):
 
-    # Radius for the nearest neighbors algorithm - 100m
+    # Radius for the nearestneighbors algorithm - 100m
 
     CATEGORIES = ("radius", {"9": "_9categories", "12": "_12categories"}, False, "radius in meters for the nearestneighbors alogrithm")
     DATASET_COLUMNS = ("dataset_columns",

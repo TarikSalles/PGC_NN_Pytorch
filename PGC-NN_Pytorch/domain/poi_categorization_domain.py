@@ -1,35 +1,29 @@
-import pandas as pd
-import numpy as np
 import json
 
-import spektral.layers
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler, power_transform
-
+import numpy as np
+import pandas as pd
 import spektral as sk
-import tensorflow as tf
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping
-import sklearn.metrics as skm
+import spektral.layers
+import torch
+from sklearn.metrics import classification_report
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras import utils as np_utils
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data import TensorDataset
+from torch_geometric.data import DataLoader
+from torch_geometric.graphgym import optim
 
+from extractor.file_extractor import FileExtractor
+from globals import Configurations
 from loader.file_loader import FileLoader
 from loader.poi_categorization_loader import PoiCategorizationLoader
-from extractor.file_extractor import FileExtractor
-from model.neural_network.poi_gnn.US.gnn_base_model_for_transfer_learning import GNNUS_BaseModel
-from utils.nn_preprocessing import one_hot_decoding_predicted, top_k_rows, top_k_rows_category, top_k_rows_centrality, split_graph, top_k_rows_category_user_tracking, top_k_rows_order
+from model.gnn_base_model_for_transfer_learning import GNNUS_BaseModel
+from utils.nn_preprocessing import top_k_rows, split_graph, \
+    top_k_rows_category_user_tracking, adjacency_to_edge_index, array_matrices_to_array_edge_index
 
-import torch
-import torch.optim as optim
-import torch.nn as nn
-import numpy as np
-from torch.utils.data import DataLoader, TensorDataset
-from sklearn.metrics import classification_report, accuracy_score
-
-from sklearn.multioutput import MultiOutputClassifier
 
 class PoiCategorizationDomain:
-
 
     def __init__(self, dataset_name):
         self.file_loader = FileLoader()
@@ -37,40 +31,54 @@ class PoiCategorizationDomain:
         self.poi_categorization_loader = PoiCategorizationLoader()
         self.dataset_name = dataset_name
 
-
-    def read_matrix(self, adjacency_matrix_filename, temporal_matrix_filename, distance_matrix_filename=None, duration_matrix_filename=None):
+    def read_matrix(self, adjacency_matrix_filename, temporal_matrix_filename, distance_matrix_filename=None,
+                    duration_matrix_filename=None):
 
         adjacency_df = self.file_extractor.read_csv(adjacency_matrix_filename).drop_duplicates(subset=['user_id'])
         temporal_matrix_df = self.file_extractor.read_csv(temporal_matrix_filename).drop_duplicates(subset=['user_id'])
-        if distance_matrix_filename is not None and duration_matrix_filename is not None:
+
+        if (
+                distance_matrix_filename is not None and
+                duration_matrix_filename is not None
+        ):
             distance_matrix_df = self.file_extractor.read_csv(distance_matrix_filename).drop_duplicates(
                 subset=['user_id'])
-            duration_matrix_df = self.file_extractor.read_csv(duration_matrix_filename).drop_duplicates(subset=['user_id'])
+            duration_matrix_df = self.file_extractor.read_csv(duration_matrix_filename).drop_duplicates(
+                subset=['user_id'])
             if adjacency_df['user_id'].tolist() != temporal_matrix_df['user_id'].tolist():
                 print("\nMATRIZES DIFERENTES\n")
                 raise
 
-            return adjacency_df, temporal_matrix_df, distance_matrix_df, duration_matrix_df
+            return (
+                adjacency_df,
+                temporal_matrix_df,
+                distance_matrix_df,
+                duration_matrix_df
+            )
+
         else:
             if adjacency_df['user_id'].tolist() != temporal_matrix_df['user_id'].tolist():
                 print("\nMATRIZES DIFERENTES\n")
                 raise
             return adjacency_df, temporal_matrix_df
 
-    def read_users_metrics(self, filename):
-
-        return self.file_extractor.read_csv(filename).drop_duplicates(subset=['user_id'])
-
-    def _poi_gnn_resize_adjacency_and_category_matrices(self, user_matrix, user_matrix_week, user_matrix_weekend, user_category, max_size_matrices, dataset_name):
+    def _poi_gnn_resize_adjacency_and_category_matrices(
+            self,
+            user_matrix,
+            user_matrix_week,
+            user_matrix_weekend,
+            user_category,
+            max_size_matrices,
+            dataset_name
+    ):
 
         more_matrices = 1
-        remain = False
         k_original = max_size_matrices
         size = user_matrix.shape[0]
         if size < k_original:
             k = user_matrix.shape[0]
         else:
-            k = int(np.floor(size/k_original) * k_original)
+            k = int(np.floor(size / k_original) * k_original)
         # select the k rows that have the highest sum
         if dataset_name == "user_tracking":
             idx = top_k_rows_category_user_tracking(user_matrix, k, user_category)
@@ -108,7 +116,7 @@ class PoiCategorizationDomain:
         user_category = user_category[idx]
 
         if k > k_original or len(not_used_ids) > 0:
-            k_split = int(np.floor(size/k_original))
+            k_split = int(np.floor(size / k_original))
             if len(not_used_ids) > 0:
                 k_split += 1
             user_matrix = split_graph(user_matrix, k_original, k_split)
@@ -117,59 +125,40 @@ class PoiCategorizationDomain:
             user_category = split_graph(user_category, k_original, k_split)
             idx = split_graph(idx, k_original, k_split)
             more_matrices = k_split
-            return np.array(user_matrix), np.array(user_matrix_week), np.array(user_matrix_weekend), np.array(
-                user_category), np.array(idx), more_matrices
 
-        return np.array([user_matrix]), np.array([user_matrix_week]), np.array([user_matrix_weekend]), np.array([user_category]), np.array([idx]), more_matrices
+            return (
+                np.array(user_matrix),
+                np.array(user_matrix_week),
+                np.array(user_matrix_weekend),
+                np.array(user_category),
+                np.array(idx),
+                more_matrices
+            )
 
-    def _resize_adjacency_and_category_matrices(self, user_matrix, user_matrix_week, user_matrix_weekend, user_category, max_size_matrices, dataset_name):
-
-        k = max_size_matrices
-        if user_matrix.shape[0] < k:
-            k = user_matrix.shape[0]
-        # select the k rows that have the highest sum
-        if dataset_name == "user_tracking":
-            idx = top_k_rows_category(user_matrix, k, user_category)
-        else:
-            idx = top_k_rows(user_matrix, k)
-        user_matrix = user_matrix[idx[:,None], idx]
-        user_matrix_week = user_matrix_week[idx[:, None], idx]
-        user_matrix_weekend = user_matrix_weekend[idx[:, None], idx]
-        user_category = user_category[idx]
-
-        return user_matrix, user_matrix_week, user_matrix_weekend, user_category, idx
-
-    def _resize_adjacency_and_category_matrices_baselines(self, user_matrix, user_category, max_size_matrices):
-
-        k = max_size_matrices
-        if user_matrix.shape[0] < k:
-            k = user_matrix.shape[0]
-        # select the k rows that have the highest sum
-        idx = top_k_rows_order(user_matrix, k)
-        user_matrix = user_matrix[idx[:,None], idx]
-        user_category = user_category[idx]
-
-        return user_matrix, user_category, idx
+        return (
+            np.array([user_matrix]),
+            np.array([user_matrix_week]),
+            np.array([user_matrix_weekend]),
+            np.array([user_category]),
+            np.array([idx]),
+            more_matrices
+        )
 
     def _filter_pmi_matrix(self, location_time, location_location, locationid_to_int, visited_location_ids):
 
         idx = np.array([locationid_to_int[visited_location_ids[i]] for i in range(len(visited_location_ids))])
 
         location_time = location_time[idx]
-        location_location = location_location[idx[:,None], idx].toarray()
+        location_location = location_location[idx[:, None], idx].toarray()
         location_location = sk.layers.GCNConv.preprocess(location_location)
 
         return location_time, location_location
 
     def poi_gnn_adjacency_preprocessing(self,
-                                inputs,
-                                max_size_matrices,
-                                week,
-                                weekend,
-                                num_categories,
-                                dataset_name,
-                                model_name="poi_gnn"):
-
+                                        inputs,
+                                        max_size_matrices,
+                                        dataset_name,
+                                        ):
         matrices_list = []
         temporal_matrices_list = []
         distance_matrices_list = []
@@ -185,12 +174,10 @@ class PoiCategorizationDomain:
         location_location_list = []
 
         users_categories = []
-        flatten_users_categories = []
         maior = -10
-        remove_users_ids = []
 
         matrix_df = inputs['all_week']['adjacency']
-        ids = matrix_df['user_id'].unique().tolist()
+        ids = matrix_df['user_id'].tolist()
         matrix_df = matrix_df['matrices'].tolist()
         category_df = inputs['all_week']['adjacency']['category'].tolist()
         temporal_df = inputs['all_week']['temporal']['matrices'].tolist()
@@ -202,7 +189,8 @@ class PoiCategorizationDomain:
         locationid_to_int = inputs['all_week']['int_to_locationid']
         locationid_to_int_ids = locationid_to_int['locationid'].tolist()
         locationid_to_int_ints = locationid_to_int['int'].tolist()
-        locationid_to_int = {locationid_to_int_ids[i]: locationid_to_int_ints[i] for i in range(len(locationid_to_int_ints))}
+        locationid_to_int = {locationid_to_int_ids[i]: locationid_to_int_ints[i] for i in
+                             range(len(locationid_to_int_ints))}
         # week
         matrix_week_df = inputs['week']['adjacency']['matrices'].tolist()
         temporal_week_df = inputs['week']['temporal']['matrices'].tolist()
@@ -212,13 +200,10 @@ class PoiCategorizationDomain:
 
         selected_visited_locations = []
 
-
         if len(ids) != len(matrix_df):
             print("\nERRO TAMANHO DA MATRIZ\n")
             exit()
 
-        max_events = 0
-        max_user = -1
         selected_users = []
         remove = 0
         for i in range(len(ids)):
@@ -249,7 +234,23 @@ class PoiCategorizationDomain:
                 maior = size
 
             # matrices get new size, equal for everyone
-            user_matrices, user_matrices_week, user_matrices_weekend, user_category, idxs, number_of_matrices = self._poi_gnn_resize_adjacency_and_category_matrices(user_matrices, user_matrices_week, user_matrices_weekend, user_category, max_size_matrices, dataset_name)
+            (
+                user_matrices,
+                user_matrices_week,
+                user_matrices_weekend,
+                user_category,
+                idxs,
+                number_of_matrices
+            ) = (
+                self._poi_gnn_resize_adjacency_and_category_matrices(
+                    user_matrices,
+                    user_matrices_week,
+                    user_matrices_weekend,
+                    user_category,
+                    max_size_matrices,
+                    dataset_name
+                )
+            )
 
             """feature"""
             user_temporal_matrices = temporal_df[i]
@@ -271,7 +272,9 @@ class PoiCategorizationDomain:
             user_duration_matrix = duration_df[i]
             user_duration_matrix = json.loads(user_duration_matrix)
             user_duration_matrix = np.array(user_duration_matrix)
+
             for i in range(number_of_matrices):
+
                 idx = idxs[i]
                 matrices_list.append(sk.layers.ARMAConv.preprocess(user_matrices[i]))
                 matrices_week_list.append(sk.layers.ARMAConv.preprocess(user_matrices_week[i]))
@@ -287,16 +290,23 @@ class PoiCategorizationDomain:
                 duration_matrices_list.append(user_duration_matrix[idx[:, None], idx])
                 users_categories.append(user_category[i])
                 # location time
-                user_location_time, user_location_location = self._filter_pmi_matrix(location_time_df, location_location_df, locationid_to_int, user_visited[idx])
+                user_location_time, user_location_location = (
+                    self._filter_pmi_matrix(
+                        location_time_df,
+                        location_location_df,
+                        locationid_to_int,
+                        user_visited[idx]
+                    )
+                )
                 user_location_time = self._min_max_normalize(user_location_time)
                 location_time_list.append(user_location_time)
                 user_location_location = spektral.layers.ARMAConv.preprocess(user_location_location)
                 location_location_list.append(user_location_location)
+
                 for j in user_visited[idx]:
                     selected_visited_locations.append(j)
                     selected_users.append(user_id)
-            """"""
-        df_selected_users_visited_locations = pd.DataFrame({'id': selected_users, 'poi_id': selected_visited_locations})
+
         print("\nQuantidade de usuários", len(ids), " Quantidade removidos: ", remove, "\n")
         self.features_num_columns = temporal_matrices_list[-1].shape[1]
         matrices_list = np.array(matrices_list)
@@ -316,9 +326,21 @@ class PoiCategorizationDomain:
         matrices_weekend_list = np.array(matrices_weekend_list)
         temporal_matrices_weekend_list = np.array(temporal_matrices_weekend_list)
         temporal_matrices_week_list = np.array(temporal_matrices_week_list)
-        return users_categories, matrices_list, temporal_matrices_list, distance_matrices_list, duration_matrices_list, \
-               matrices_week_list, temporal_matrices_week_list, matrices_weekend_list, temporal_matrices_weekend_list, \
-               location_time_list, location_location_list, selected_users, df_selected_users_visited_locations
+
+        return (
+            users_categories,
+            matrices_list,
+            temporal_matrices_list,
+            distance_matrices_list,
+            duration_matrices_list,
+            matrices_week_list,
+            temporal_matrices_week_list,
+            matrices_weekend_list,
+            temporal_matrices_weekend_list,
+            location_time_list,
+            location_location_list,
+            selected_users
+        )
 
     def k_fold_split_train_test(self,
                                 k,
@@ -350,17 +372,22 @@ class PoiCategorizationDomain:
         classes_weights = []
         for train_indexes, test_indexes in kf.split(adjacency_list):
 
-            fold, class_weight = self._split_train_test(k,
-                                                        model_name,
-                                                        adjacency_list,
-                                                        user_categories,
-                                                        temporal_list,
-                                                        location_time,
-                                                        location_location_list,
-                                                        distance_list,
-                                                        duration_list,
-                                                        train_indexes,
-                                                        test_indexes)
+            fold, class_weight = (
+                self._split_train_test(
+                    k,
+                    model_name,
+                    adjacency_list,
+                    user_categories,
+                    temporal_list,
+                    location_time,
+                    location_location_list,
+                    distance_list,
+                    duration_list,
+                    train_indexes,
+                    test_indexes
+                )
+            )
+
             folds.append(fold)
             classes_weights.append(class_weight)
             if skip:
@@ -419,35 +446,58 @@ class PoiCategorizationDomain:
             flatten_train_category += categories_list.tolist()
         flatten_train_category = pd.Series(flatten_train_category, name='category')
         flatten_train_category = flatten_train_category.astype('object')
-        train_categories_freq = {e:0 for e in flatten_train_category.unique().tolist()}
+        train_categories_freq = {e: 0 for e in flatten_train_category.unique().tolist()}
         for i in range(flatten_train_category.shape[0]):
-            train_categories_freq[flatten_train_category.iloc[i]]+=1
+            train_categories_freq[flatten_train_category.iloc[i]] += 1
         n = sum(train_categories_freq.values())
 
         total_support = 0
         for e in train_categories_freq:
-            total_support+=train_categories_freq[e]
+            total_support += train_categories_freq[e]
 
         total_support_inverse = 0
         for e in train_categories_freq:
             total_support_inverse += total_support - train_categories_freq[e]
 
-
         for e in train_categories_freq:
-            train_categories_freq[e] = (total_support - train_categories_freq[e])/total_support_inverse
-
+            train_categories_freq[e] = (total_support - train_categories_freq[e]) / total_support_inverse
 
         class_weight = list(train_categories_freq.values())
         user_categories_train = np.array([[e for e in row] for row in user_categories_train])
         user_categories_test = np.array([[e for e in row] for row in user_categories_test])
 
         if len(distance_list) > 0:
-            return (adjacency_list_train, user_categories_train, temporal_list_train, distance_list_train, duration_list_train,
-                    location_time_list_train, location_location_list_train, adjacency_list_test, user_categories_test, temporal_list_test, distance_list_test,
-                    duration_list_test, location_time_list_test, location_location_list_test), class_weight
-        else:            
-            return (adjacency_list_train, user_categories_train, temporal_list_train,
-                    adjacency_list_test, user_categories_test, temporal_list_test), class_weight
+            return (
+                (
+                    adjacency_list_train,
+                    user_categories_train,
+                    temporal_list_train,
+                    distance_list_train,
+                    duration_list_train,
+                    location_time_list_train,
+                    location_location_list_train,
+                    adjacency_list_test,
+                    user_categories_test,
+                    temporal_list_test,
+                    distance_list_test,
+                    duration_list_test,
+                    location_time_list_test,
+                    location_location_list_test,
+                ),
+                class_weight
+            )
+        else:
+            return (
+                (
+                    adjacency_list_train,
+                    user_categories_train,
+                    temporal_list_train,
+                    adjacency_list_test,
+                    user_categories_test,
+                    temporal_list_test
+                ),
+                class_weight
+            )
 
     def k_fold_with_replication_train_and_evaluate_model(self,
                                                          inputs_folds,
@@ -476,24 +526,24 @@ class PoiCategorizationDomain:
             class_weight_weekend = inputs_folds['weekend']['class_weight'][i]
             histories = []
             reports = []
-            for j in range(n_replications):
 
+            for _ in range(n_replications):
                 history, report, model, accuracy = self.train_and_evaluate_model(i,
                                                                                  fold,
                                                                                  fold_week,
                                                                                  fold_weekend,
-                                                                                class_weight,
+                                                                                 class_weight,
                                                                                  class_weight_week,
                                                                                  class_weight_weekend,
-                                                                                max_size_matrices,
-                                                                                max_size_sequence,
-                                                                                epochs,
-                                                                                seed,
-                                                                                country,
-                                                                                output_dir,
-                                                                                version)
+                                                                                 max_size_matrices,
+                                                                                 max_size_sequence,
+                                                                                 epochs,
+                                                                                 seed,
+                                                                                 country,
+                                                                                 output_dir,
+                                                                                 version)
 
-                seed+=1
+                seed += 1
 
                 base_report = self._add_location_report(base_report, report)
                 histories.append(history)
@@ -509,14 +559,39 @@ class PoiCategorizationDomain:
     def train_and_evaluate_model(self, fold_number, fold, fold_week, fold_weekend,
                                  class_weight, class_weight_week, class_weight_weekend,
                                  max_size_matrices, max_size_sequence, epochs, seed,
-                                 country, output_dir, version="normal", model=None):
+                                 country,
+                                 output_dir,
+                                 version="normal",
+                                 model=None
+                                 ):
+        (adjacency_train,
+         y_train,
+         temporal_train,
+         distance_train,
+         duration_train,
+         location_time_train,
+         location_location_train,
+         adjacency_test,
+         y_test,
+         temporal_test,
+         distance_test,
+         duration_test,
+         location_time_test,
+         location_location_test) = fold
 
-        adjacency_train, y_train, temporal_train, distance_train, duration_train, location_time_train, location_location_train, \
-        adjacency_test, y_test, temporal_test, distance_test, duration_test, location_time_test, location_location_test = fold
-        adjacency_week_train, y_train_week, temporal_train_week, \
-        adjacency_test_week, y_test_week, temporal_test_week = fold_week
-        adjacency_train_weekend, y_train_weekend, temporal_train_weekend, \
-        adjacency_test_weekend, y_test_weekend, temporal_test_weekend = fold_weekend
+        (adjacency_week_train,
+         y_train_week,
+         temporal_train_week,
+         adjacency_test_week,
+         y_test_week,
+         temporal_test_week) = fold_week
+
+        (adjacency_train_weekend,
+         y_train_weekend,
+         temporal_train_weekend,
+         adjacency_test_weekend,
+         y_test_weekend,
+         temporal_test_weekend) = fold_weekend
 
         max_total = 0
         max_user = -1
@@ -529,117 +604,229 @@ class PoiCategorizationDomain:
 
         num_classes = max(y_train.flatten()) + 1
         max_size = max_size_matrices
-        lr = 0.001
+        learning_rate = 0.001
         print("\nQuantidade de classes: ", num_classes)
         print("\nTamanho maximo", max_size_matrices)
-        print("\nTamanho das matrizes de treino: ", adjacency_train.shape, temporal_train.shape,
-              adjacency_week_train.shape, temporal_train_week.shape, distance_train.shape, duration_train.shape,
-              location_time_train.shape, location_location_train.shape)
 
-        print("\nTamanho das matrizes de teste: ", adjacency_test.shape, temporal_test.shape,
-              adjacency_test_week.shape, temporal_test_week.shape, distance_test.shape, duration_test.shape,
-              location_time_test.shape, location_location_train.shape)
+        print("\nTamanho das matrizes de treino: ",
+              adjacency_train.shape,
+              temporal_train.shape,
+              adjacency_week_train.shape,
+              temporal_train_week.shape,
+              distance_train.shape,
+              duration_train.shape,
+              location_time_train.shape,
+              location_location_train.shape
+              )
 
-        model = GNNUS_BaseModel(
-            num_classes,
-            max_size,
-            max_size_sequence,
-            self.features_num_columns
-        )
-        batch = max_size * 2
-
-        print("\nTamanho do batch: ", batch)
+        print("\nTamanho das matrizes de teste: ",
+              adjacency_test.shape,
+              temporal_test.shape,
+              adjacency_test_week.shape,
+              temporal_test_week.shape,
+              distance_test.shape,
+              duration_test.shape,
+              location_time_test.shape,
+              location_location_test.shape
+              )
 
         user_index = max_user
         self.heatmap_matrices(str(fold_number), [adjacency_test[user_index], adjacency_test_week[user_index],
                                                  adjacency_test_weekend[user_index],
                                                  temporal_test[user_index], temporal_test_week[user_index],
                                                  temporal_test_weekend[user_index], location_time_test[user_index],
-                                                 location_location_test[user_index]],
-                              ["Adjacency", "Adjacency (weekday)", "Adjacency (weekend)", "Temporal",
-                               "Temporal (weekday)", "Temporal (weekend)", "Location_time", "Location_location"],
+                                                 location_location_test[user_index]
+                                                 ],
+                              [
+                                  "Adjacency",
+                                  "Adjacency (weekday)",
+                                  "Adjacency (weekend)",
+                                  "Temporal",
+                                  "Temporal (weekday)", "Temporal (weekend)", "Location_time", "Location_location"],
                               output_dir)
 
         input_train = [adjacency_train, adjacency_week_train, adjacency_train_weekend,
                        temporal_train, temporal_train_week, temporal_train_weekend, distance_train,
                        duration_train, location_time_train, location_location_train]
+
         input_test = [adjacency_test, adjacency_test_week, adjacency_test_weekend, temporal_test, temporal_test_week,
                       temporal_test_weekend,
                       distance_test, duration_test, location_time_test, location_location_test]
 
+        print("A_input", type(adjacency_train), adjacency_train.shape)
+        print("A_week_input", type(adjacency_week_train), adjacency_week_train.shape)
+        print("A_weekend_input", type(adjacency_train_weekend), adjacency_train_weekend.shape)
+        print("Location_location_input", type(location_location_train), location_location_train.shape)
+
+        print("A_input", adjacency_train[:2])
+        print("A_input", temporal_train[:2])
+
+
+        # verifying whether categories arrays are equal
         compare1 = y_train == y_train_week
         compare2 = y_train_week == y_train_weekend
         compare3 = y_test == y_test_week
         compare4 = y_test_week == y_test_weekend
+
         if not (compare1.all() and compare2.all() and compare3.all() and compare4.all()):
             print("\nListas difernetes de categorias\n")
             exit()
 
-        optimizer = optim.Adam(model.parameters(), lr=lr)
-        criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weight, dtype=torch.float32))
+        # Model setup and hyperparameters
+        self.device = torch.device(Configurations.DEVICE)
+        self.model = GNNUS_BaseModel(num_classes, max_size, max_size_sequence, self.features_num_columns).to(
+            self.device)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.loss_fn_pcg = torch.nn.CrossEntropyLoss()  # Automatically applies Softmax for you
 
-        # Converte para tensors pytorch
-        input_train = [torch.tensor(data) for data in input_train]
-        y_train = torch.tensor(y_train)
-
-        input_test = [torch.tensor(data) for data in input_test]
-        y_test = torch.tensor(y_test)
-
-        # Create DataLoader for training and testing
-        train_dataset = TensorDataset(*input_train, y_train)
-        test_dataset = TensorDataset(*input_test, y_test)
-
-        train_loader = DataLoader(train_dataset, batch_size=batch, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=batch, shuffle=False)
-
-        model.train()
-        h = {'loss': [], 'val_loss': [],'acc':[],'val_acc':[]}
-        for epoch in range(epochs):
-            for batch_data in train_loader:
-                optimizer.zero_grad()
-                inputs, targets = batch_data[:-1], batch_data[-1].long()
-                outputs = model(*inputs)
-                loss = criterion(outputs, targets)
-                loss.backward()
-                optimizer.step()
-
-            model.eval()
-            with torch.no_grad():
-                val_losses = []
-                for val_batch_data in test_loader:
-                    val_inputs, val_targets = val_batch_data[:-1], val_batch_data[-1].long()
-                    val_outputs = model(*val_inputs)
-                    val_loss = criterion(val_outputs, val_targets)
-                    val_losses.append(val_loss.item())
-
-            h['loss'].append(loss.item())
-            h['val_loss'].append(np.mean(val_losses))
+        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True) #
+        self.batch_size = max_size * 2
+        print("\nTamanho do batch_size: ", self.batch_size)
 
 
-        model.eval()
-        with torch.no_grad():
-            y_pred = []
-            for test_batch_data in test_loader:
-                test_inputs, test_targets = test_batch_data[:-1], test_batch_data[-1]
-                test_outputs = model(*test_inputs)
-                _, predicted = torch.max(test_outputs, 1)
-                y_pred.extend(predicted.numpy())
+        # TOSHOW: Será que usar o LabelEncoder ao inves de np_utils.to_categorical
+        # Converting y_train and y_test to tensor and one-hot encoding
+        y_train_encoded = np_utils.to_categorical(y_train, num_classes=num_classes)
+        y_test_encoded = np_utils.to_categorical(y_test, num_classes=num_classes)
 
-        y_true = y_test.numpy().flatten()
-        y_pred = np.array(y_pred).flatten()
+        y_train_tensor = torch.tensor(y_train_encoded, dtype=torch.long)
+        y_test_tensor = torch.tensor(y_test_encoded, dtype=torch.long)
 
-        accuracy = accuracy_score(y_true, y_pred)
+        # Creating data loaders
+        input_train_tensor = [torch.tensor(data, dtype=torch.float32).to(self.device) for data in input_train]
+        input_test_tensor = [torch.tensor(data, dtype=torch.float32).to(self.device) for data in input_test]
+
+        train_dataset = TensorDataset(*input_train_tensor, y_train_tensor)
+        test_dataset = TensorDataset(*input_test_tensor, y_test_tensor)
+        train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
+
+        # Training the model
+        h = self.train_model(train_loader, test_loader, epochs)
+        report, accuracy = self.evaluate_model(test_loader)
+
+        # Append the history metrics
         h['acc'].append(accuracy)
         h['val_acc'].append(accuracy)
-        report = classification_report(y_true, y_pred, output_dict=True)
 
         return h, report, model, accuracy
+
+    # Training loop
+    def train_model(self, train_loader, test_loader, epochs):
+        # History storage
+        history = {
+            'acc': [],
+            'loss': [],
+            'val_acc': [],
+            'val_loss': []
+        }
+
+        self.model.train()
+
+        for epoch in range(epochs):
+            # Reset history metrics
+            running_loss = 0.0
+            correct = 0
+            total = 0
+
+            for loader in train_loader:
+                self.optimizer.zero_grad()
+
+                inputs, targets = loader[:-1], loader[-1].long()
+                outputs = self.model(*inputs)
+
+                print("targets", targets.shape)
+                print("outputs", outputs.shape)
+
+                # TOSHOW: Será que usar o one_hot_decoding_predicted
+                # with torch.no_grad():
+                # targets = one_hot_decoding_predicted(targets.cpu().numpy())
+                # outputs = one_hot_decoding_predicted(outputs.cpu().numpy())
+
+                loss = self.loss_fn(outputs, targets)
+                loss.backward()
+                self.optimizer.step()
+
+                # Store the loss
+                running_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                total += targets.size(0)
+                correct += (predicted == targets).sum().item()
+
+            # TOSHOW
+            # Update learning rate based on the training loss
+            self.scheduler.step(loss)
+
+            # Store training metrics
+            epoch_loss = running_loss / len(train_loader)
+            epoch_acc = 100 * correct / total
+            history['loss'].append(epoch_loss)
+            history['acc'].append(epoch_acc)
+
+            # Validation step
+            self.model.eval()
+
+            # Reset metrics
+            val_running_loss = 0.0
+            val_correct = 0
+            val_total = 0
+
+            with torch.no_grad():
+                for loaders in test_loader:
+                    inputs, targets = loaders[:-1], loaders[-1].long()
+
+                    inputs, targets = [i.to(self.device) for i in inputs], targets.to(self.device)
+
+                    outputs = self.model(*inputs)
+
+                    # TOSHOW: Será que usar o one_hot_decoding_predicted
+                    # targets = one_hot_decoding_predicted(targets)
+                    # outputs = one_hot_decoding_predicted(outputs)
+
+                    loss = self.loss_fn(outputs, targets)
+                    val_running_loss += loss.item()
+                    _, predicted = torch.max(outputs.data, 1)
+                    val_total += targets.size(0)
+                    val_correct += (predicted == targets).sum().item()
+
+            val_epoch_loss = val_running_loss / len(test_loader)
+            val_epoch_acc = 100 * val_correct / val_total
+            history['val_loss'].append(val_epoch_loss)
+            history['val_acc'].append(val_epoch_acc)
+
+            print(
+                f'Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.2f}%, Val_Loss: {val_epoch_loss:.4f}, Val_Acc: {val_epoch_acc:.2f}%')
+
+        return history
+
+    def evaluate_model(self, test_loader):
+        self.model.eval()
+
+        with torch.no_grad():
+            y_pred = []
+            y_true = []
+            for loaders in test_loader:
+                inputs, targets = loaders[:-1], loaders[-1].long()
+
+                outputs = self.model(inputs)
+
+                # TOSHOW: Será que usar o one_hot_decoding_predicted
+                # outputs = one_hot_decoding_predicted(outputs)
+                # targets = one_hot_decoding_predicted(targets)
+
+                _, predicted = torch.max(outputs, 1)
+
+                y_pred.extend(predicted.cpu().numpy())
+                y_true.extend(targets.cpu().numpy())
+
+        report = classification_report(y_true, y_pred, output_dict=True)
+        return report, report['accuracy']
 
     def heatmap_matrices(self, fold_number, matrices, names, output_dir):
 
         for matrix, name in zip(matrices, names):
-
-            self.poi_categorization_loader.heatmap(output_dir, matrix, name.replace(" ", "_")+"_"+fold_number, name, (10,10), True)
+            self.poi_categorization_loader.heatmap(output_dir, matrix, name.replace(" ", "_") + "_" + fold_number, name,
+                                                   (10, 10), True)
 
     def _add_location_report(self, location_report, report):
         for l_key in report:
@@ -675,4 +862,4 @@ class PoiCategorizationDomain:
         scaler.fit(matrix_1)
         matrix_1 = scaler.transform(matrix_1).transpose()
 
-        return matrix_1        
+        return matrix_1

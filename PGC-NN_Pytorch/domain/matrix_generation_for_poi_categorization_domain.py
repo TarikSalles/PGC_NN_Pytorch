@@ -4,11 +4,6 @@ import numpy as np
 import time
 import statistics as st
 import os
-
-
-from scipy.sparse import dok_matrix
-from numpy.linalg import norm
-from numpy.linalg import inv as inverse
 import scipy.sparse as sparse
 from configuration.weekday  import Weekday
 
