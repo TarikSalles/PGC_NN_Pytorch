@@ -19,6 +19,7 @@ es_patience = 100  # Patience for early stopping
 class GNNUS_BaseModel(nn.Module):
     def __init__(self, classes, max_size_matrices, max_size_sequence, features_num_columns: int):
         super(GNNUS_BaseModel, self).__init__()
+
         self.max_size_matrices = max_size_matrices
         self.max_size_sequence = max_size_sequence
         self.classes = classes
@@ -102,13 +103,21 @@ class GNNUS_BaseModel(nn.Module):
             nn.Softmax(),
         )
 
-    def forward(self,
-                A_input, A_input_weights,
-                A_week_input, A_week_input_weights,
-                A_weekend_input, A_weekend_input_weights,
-                Temporal_input, Temporal_week_input, Temporal_weekend_input,
-                Distance_input, Duration_input, Location_time_input,
-                Location_location_input, Location_location_input_weights):
+    def forward(self, A_input, A_week_input, A_weekend_input, Temporal_input, Temporal_week_input,
+                Temporal_weekend_input, Distance_input, Duration_input, Location_time_input, Location_location_input):
+
+        A_input, A_input_weights = prepare_pyg_batch(A_input)
+        A_week_input, A_week_input_weights = prepare_pyg_batch(A_week_input)
+        A_weekend_input, A_weekend_input_weights = prepare_pyg_batch(A_weekend_input)
+        Location_location_input, Location_location_input_weights = prepare_pyg_batch(Location_location_input)
+
+        Temporal_input = Temporal_input.view(Temporal_input.size(0) * Temporal_input.size(1), Temporal_input.size(2))
+        Temporal_week_input = Temporal_week_input.view(Temporal_week_input.size(0) * Temporal_week_input.size(1), Temporal_week_input.size(2))
+        Temporal_weekend_input = Temporal_weekend_input.view(Temporal_weekend_input.size(0) * Temporal_weekend_input.size(1), Temporal_weekend_input.size(2))
+        Distance_input = Distance_input.view(Distance_input.size(0) * Distance_input.size(1), Distance_input.size(2))
+        Duration_input = Duration_input.view(Duration_input.size(0) * Duration_input.size(1), Duration_input.size(2))
+        Location_time_input = Location_time_input.view(Location_time_input.size(0) * Location_time_input.size(1), Location_time_input.size(2))
+
 
         out_temporal = F.elu(self.arma_conv_temporal(Temporal_input, A_input, A_input_weights))
         out_temporal = self.dropout_temporal(out_temporal)
@@ -133,12 +142,15 @@ class GNNUS_BaseModel(nn.Module):
         out_duration = self.dropout_duration(out_duration)
         out_duration = F.softmax(self.arma_conv_final_duration(out_duration, A_input, A_input_weights))
 
-        out_location_time = F.elu(self.arma_conv_location_time(Location_time_input, Location_location_input, Location_location_input_weights))
+        out_location_time = F.elu(
+            self.arma_conv_location_time(Location_time_input, Location_location_input, Location_location_input_weights))
         out_location_time = self.dropout_location_time(out_location_time)
-        out_location_time = F.softmax(self.arma_conv_final_location_time(out_location_time, Location_location_input, Location_location_input_weights))
-        out_location_location = self.dense_location_time(Location_location_input)
+        out_location_time = F.softmax(self.arma_conv_final_location_time(out_location_time, Location_location_input,
+                                                                         Location_location_input_weights))
 
-        out_dense = torch.tensor(2) * out_location_location + torch.tensor(2) * out_location_time
+        out_location_location = self.dense_location_time(Location_time_input)
+
+        out_dense = torch.tensor(2.) * out_location_location + torch.tensor(2.) * out_location_time
         out_dense = self.dense_location_location(out_dense)
 
         out_gnn = (

@@ -4,6 +4,7 @@ import pandas as pd
 import torch
 
 from configuration.poi_categorization_configuration import PoICategorizationConfiguration
+from globals import Configurations
 
 
 def user_category_to_int(user_categories, dataset_name, categories_type):
@@ -242,7 +243,7 @@ def adjacency_to_edge_index(adj_matrix):
 
 def adjacency_to_edge_index_with_weights(adj_matrix):
     if isinstance(adj_matrix, torch.Tensor):
-        adj_matrix = adj_matrix.numpy()
+        adj_matrix = adj_matrix.cpu().numpy()
     num_nodes = adj_matrix.shape[0]
     src_nodes, dst_nodes = np.triu_indices(num_nodes, k=0)
     weights = adj_matrix[src_nodes, dst_nodes]
@@ -264,7 +265,6 @@ def prepare_pyg_batch(batch_adj_matrices, max_edges=3):
     edge_indices (torch.Tensor): All edge indices combined, adjusted for cumulative node counts.
     edge_weights (torch.Tensor): All edge weights combined.
     """
-    print(type(batch_adj_matrices))
     num_graphs = len(batch_adj_matrices)
     cumulative_nodes = 0
     all_edge_indices = []
@@ -281,10 +281,7 @@ def prepare_pyg_batch(batch_adj_matrices, max_edges=3):
         cumulative_nodes += adj_matrix.shape[0]
 
     # Concatenate all edge indices and weights into single tensors
-    combined_edge_index = torch.cat(all_edge_indices, dim=1)
-    combined_edge_weights = torch.cat(all_edge_weights, dim=0)
+    combined_edge_index = torch.cat(all_edge_indices, dim=1).to(torch.device(Configurations.DEVICE))
+    combined_edge_weights = torch.cat(all_edge_weights, dim=0).to(torch.device(Configurations.DEVICE))
 
-    combined_edge_index = [data for data in combined_edge_index]
-    combined_edge_weights = [data for data in combined_edge_weights]
-
-    return np.array(combined_edge_index), np.array(combined_edge_weights)
+    return combined_edge_index, combined_edge_weights
