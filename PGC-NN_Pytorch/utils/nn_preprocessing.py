@@ -1,6 +1,7 @@
 import networkx as nx
 import numpy as np
 import pandas as pd
+import torch
 
 from configuration.poi_categorization_configuration import PoICategorizationConfiguration
 
@@ -239,24 +240,51 @@ def adjacency_to_edge_index(adj_matrix):
     return edge_indices, edge_weights
 
 
-def array_matrices_to_array_edge_index(array_matrices: np.ndarray):
-    array_edge_indices = []
+def adjacency_to_edge_index_with_weights(adj_matrix):
+    if isinstance(adj_matrix, torch.Tensor):
+        adj_matrix = adj_matrix.numpy()
+    num_nodes = adj_matrix.shape[0]
+    src_nodes, dst_nodes = np.triu_indices(num_nodes, k=0)
+    weights = adj_matrix[src_nodes, dst_nodes]
+    mask = weights > 0
+    src_nodes = src_nodes[mask]
+    dst_nodes = dst_nodes[mask]
+    weights = weights[mask]
+    return torch.tensor([src_nodes, dst_nodes], dtype=torch.long), torch.tensor(weights, dtype=torch.float)
 
-    # Iterate over the adjacency matrices
-    for matrix in array_matrices:
-        edge_indices = []
-        edge_weights = []
-        for i in range(matrix.shape[0]):
-            for j in range(matrix.shape[1]):
-                if matrix[i, j] != 0:
-                    # Add the edge indices and the weight
-                    edge_indices.append([i, j])
-                    edge_weights.append(matrix[i, j])
 
-        # Converting lists to numpy arrays
-        edge_indices = np.array(edge_indices)
-        edge_weights = np.array(edge_weights)
-        array_edge_indices.append(np.array([edge_indices, edge_weights], dtype=object))
+def prepare_pyg_batch(batch_adj_matrices, max_edges=3):
+    """
+    Adjusts edge indices and concatenates them for a batch of graphs, preparing for PyG DataLoader.
 
-    # Convert the list of numpy arrays to a single numpy array
-    return np.array(array_edge_indices, dtype=object)
+    Parameters:
+    batch_adj_matrices (list of np.ndarray): List of adjacency matrices.
+
+    Returns:
+    edge_indices (torch.Tensor): All edge indices combined, adjusted for cumulative node counts.
+    edge_weights (torch.Tensor): All edge weights combined.
+    """
+    print(type(batch_adj_matrices))
+    num_graphs = len(batch_adj_matrices)
+    cumulative_nodes = 0
+    all_edge_indices = []
+    all_edge_weights = []
+
+    for adj_matrix in batch_adj_matrices:
+        edge_index, edge_weights = adjacency_to_edge_index_with_weights(adj_matrix)
+        # Adjust edge indices based on the cumulative number of nodes processed
+        edge_index[0, :] += cumulative_nodes
+        edge_index[1, :] += cumulative_nodes
+        all_edge_indices.append(edge_index)
+        all_edge_weights.append(edge_weights)
+        # Update the cumulative nodes count
+        cumulative_nodes += adj_matrix.shape[0]
+
+    # Concatenate all edge indices and weights into single tensors
+    combined_edge_index = torch.cat(all_edge_indices, dim=1)
+    combined_edge_weights = torch.cat(all_edge_weights, dim=0)
+
+    combined_edge_index = [data for data in combined_edge_index]
+    combined_edge_weights = [data for data in combined_edge_weights]
+
+    return np.array(combined_edge_index), np.array(combined_edge_weights)

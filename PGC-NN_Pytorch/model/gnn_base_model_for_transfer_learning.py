@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn.conv import ARMAConv
 
-from utils.nn_preprocessing import adjacency_to_edge_index
+from utils.nn_preprocessing import prepare_pyg_batch
 
 iterations = 1  # Number of iterations to approximate each ARMA(1)
 order = 1  # Order of the ARMA filter (number of parallel stacks)
@@ -24,7 +24,7 @@ class GNNUS_BaseModel(nn.Module):
         self.classes = classes
         self.features_num_columns = features_num_columns
 
-        # Temporal
+        # Week_total
         self.arma_conv_temporal = ARMAConv(-1, 20,
                                            num_stacks=1,  # ?
                                            num_layers=1,  # Order
@@ -102,56 +102,57 @@ class GNNUS_BaseModel(nn.Module):
             nn.Softmax(),
         )
 
+    def forward(self,
+                A_input, A_input_weights,
+                A_week_input, A_week_input_weights,
+                A_weekend_input, A_weekend_input_weights,
+                Temporal_input, Temporal_week_input, Temporal_weekend_input,
+                Distance_input, Duration_input, Location_time_input,
+                Location_location_input, Location_location_input_weights):
 
-
-
-    def forward(self, A_input, A_week_input, A_weekend_input, Temporal_input, Temporal_week_input,
-                Temporal_weekend_input, Distance_input, Duration_input, Location_time_input, Location_location_input):
-
-        print("A_input", type(A_input), A_input.shape)
-        print(A_input[0])
-        print(adjacency_to_edge_index(A_input[0]))
-
-        out_temporal = F.elu(self.arma_conv_temporal(Temporal_input, A_input))
+        out_temporal = F.elu(self.arma_conv_temporal(Temporal_input, A_input, A_input_weights))
         out_temporal = self.dropout_temporal(out_temporal)
-        out_temporal = F.softmax(self.arma_conv_final_temporal(out_temporal, A_input))
+        out_temporal = F.softmax(self.arma_conv_final_temporal(out_temporal, A_input, A_input_weights))
 
-        out_week_temporal = F.elu(self.arma_conv_temporal_week(Temporal_week_input, A_week_input))
+        out_week_temporal = F.elu(self.arma_conv_temporal_week(Temporal_week_input, A_week_input, A_week_input_weights))
         out_week_temporal = self.dropout_temporal_week(out_week_temporal)
-        out_week_temporal = F.softmax(self.arma_conv_final_temporal_week(out_week_temporal, A_week_input))
+        out_week_temporal = F.softmax(
+            self.arma_conv_final_temporal_week(out_week_temporal, A_week_input, A_week_input_weights))
 
-        out_weekend_temporal = F.elu(self.arma_conv_temporal_weekend(Temporal_weekend_input, A_weekend_input))
+        out_weekend_temporal = F.elu(
+            self.arma_conv_temporal_weekend(Temporal_weekend_input, A_weekend_input, A_weekend_input_weights))
         out_weekend_temporal = self.dropout_temporal_weekend(out_weekend_temporal)
-        out_weekend_temporal = F.softmax(self.arma_conv_final_temporal_weekend(out_weekend_temporal, A_weekend_input))
+        out_weekend_temporal = F.softmax(
+            self.arma_conv_final_temporal_weekend(out_weekend_temporal, A_weekend_input, A_weekend_input_weights))
 
-        out_distance = F.elu(self.arma_conv_distance(Distance_input, A_input))
+        out_distance = F.elu(self.arma_conv_distance(Distance_input, A_input, A_input_weights))
         out_distance = self.dropout_distance(out_distance)
-        out_distance = F.softmax(self.arma_conv_final_distance(out_distance, A_input))
+        out_distance = F.softmax(self.arma_conv_final_distance(out_distance, A_input, A_input_weights))
 
-        out_duration = F.elu(self.arma_conv_duration(Duration_input, A_input))
+        out_duration = F.elu(self.arma_conv_duration(Duration_input, A_input, A_input_weights))
         out_duration = self.dropout_duration(out_duration)
-        out_duration = F.softmax(self.arma_conv_final_duration(out_duration, A_input))
+        out_duration = F.softmax(self.arma_conv_final_duration(out_duration, A_input, A_input_weights))
 
-        out_location_time = F.elu(self.arma_conv_location_time(Location_time_input, A_input))
+        out_location_time = F.elu(self.arma_conv_location_time(Location_time_input, Location_location_input, Location_location_input_weights))
         out_location_time = self.dropout_location_time(out_location_time)
-        out_location_time = F.softmax(self.arma_conv_final_location_time(out_location_time, A_input))
+        out_location_time = F.softmax(self.arma_conv_final_location_time(out_location_time, Location_location_input, Location_location_input_weights))
         out_location_location = self.dense_location_time(Location_location_input)
 
         out_dense = torch.tensor(2) * out_location_location + torch.tensor(2) * out_location_time
         out_dense = self.dense_location_location(out_dense)
 
         out_gnn = (
-            torch.tensor(1.) * out_temporal
-            + torch.tensor(1.) * out_week_temporal
-            + torch.tensor(1.) * out_weekend_temporal
-            + torch.tensor(1.) * out_distance
-            + torch.tensor(1.) * out_duration
-            + torch.tensor(1.) * out_dense
+                torch.tensor(1.) * out_temporal
+                + torch.tensor(1.) * out_week_temporal
+                + torch.tensor(1.) * out_weekend_temporal
+                + torch.tensor(1.) * out_distance
+                + torch.tensor(1.) * out_duration
+                + torch.tensor(1.) * out_dense
         )
         out_gnn = self.output_gnn(out_gnn)
         out = (
-            torch.tensor(1.) * out_dense
-            + torch.tensor(1.) * out_gnn
+                torch.tensor(1.) * out_dense
+                + torch.tensor(1.) * out_gnn
         )
 
         return out

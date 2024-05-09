@@ -20,7 +20,7 @@ from loader.file_loader import FileLoader
 from loader.poi_categorization_loader import PoiCategorizationLoader
 from model.gnn_base_model_for_transfer_learning import GNNUS_BaseModel
 from utils.nn_preprocessing import top_k_rows, split_graph, \
-    top_k_rows_category_user_tracking, adjacency_to_edge_index, array_matrices_to_array_edge_index
+    top_k_rows_category_user_tracking, prepare_pyg_batch
 
 
 class PoiCategorizationDomain:
@@ -645,21 +645,35 @@ class PoiCategorizationDomain:
                                   "Temporal (weekday)", "Temporal (weekend)", "Location_time", "Location_location"],
                               output_dir)
 
-        input_train = [adjacency_train, adjacency_week_train, adjacency_train_weekend,
+        input_train_ori = [adjacency_train, adjacency_week_train, adjacency_train_weekend,
                        temporal_train, temporal_train_week, temporal_train_weekend, distance_train,
                        duration_train, location_time_train, location_location_train]
 
-        input_test = [adjacency_test, adjacency_test_week, adjacency_test_weekend, temporal_test, temporal_test_week,
-                      temporal_test_weekend,
-                      distance_test, duration_test, location_time_test, location_location_test]
+        adjacency_train, adjacency_train_weights = prepare_pyg_batch(adjacency_train)
+        adjacency_week_train, adjacency_week_train_weights = prepare_pyg_batch(adjacency_week_train)
+        adjacency_train_weekend, adjacency_train_weekend_weights = prepare_pyg_batch(adjacency_train_weekend)
+        location_location_train, location_location_train_weights = prepare_pyg_batch(location_location_train)
 
-        print("A_input", type(adjacency_train), adjacency_train.shape)
-        print("A_week_input", type(adjacency_week_train), adjacency_week_train.shape)
-        print("A_weekend_input", type(adjacency_train_weekend), adjacency_train_weekend.shape)
-        print("Location_location_input", type(location_location_train), location_location_train.shape)
+        adjacency_test, adjacency_test_weights = prepare_pyg_batch(adjacency_test)
+        adjacency_test_week, adjacency_test_week_weights = prepare_pyg_batch(adjacency_test_week)
+        adjacency_test_weekend, adjacency_test_weekend_weights = prepare_pyg_batch(adjacency_test_weekend)
+        location_location_test, location_location_test_weights = prepare_pyg_batch(location_location_test)
 
-        print("A_input", adjacency_train[:2])
-        print("A_input", temporal_train[:2])
+        input_train = [adjacency_train, adjacency_train_weights,
+                       adjacency_week_train, adjacency_week_train_weights,
+                       adjacency_train_weekend, adjacency_train_weekend_weights,
+                       temporal_train, temporal_train_week, temporal_train_weekend,
+                       distance_train, duration_train, location_time_train,
+                       location_location_train, location_location_train_weights
+                       ]
+
+        input_test = [adjacency_test, adjacency_test_weights,
+                      adjacency_test_week, adjacency_test_week_weights,
+                      adjacency_test_weekend, adjacency_test_weekend_weights,
+                      temporal_test, temporal_test_week, temporal_test_weekend,
+                      distance_test, duration_test, location_time_test,
+                      location_location_test, location_location_test_weights
+                      ]
 
 
         # verifying whether categories arrays are equal
@@ -679,10 +693,9 @@ class PoiCategorizationDomain:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.loss_fn_pcg = torch.nn.CrossEntropyLoss()  # Automatically applies Softmax for you
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True) #
+        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)  #
         self.batch_size = max_size * 2
         print("\nTamanho do batch_size: ", self.batch_size)
-
 
         # TOSHOW: Será que usar o LabelEncoder ao inves de np_utils.to_categorical
         # Converting y_train and y_test to tensor and one-hot encoding
