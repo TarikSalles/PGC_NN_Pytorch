@@ -105,19 +105,17 @@ class GNNUS_BaseModel(nn.Module):
 
     def forward(self, A_input, A_week_input, A_weekend_input, Temporal_input, Temporal_week_input,
                 Temporal_weekend_input, Distance_input, Duration_input, Location_time_input, Location_location_input):
-
         A_input, A_input_weights = prepare_pyg_batch(A_input)
         A_week_input, A_week_input_weights = prepare_pyg_batch(A_week_input)
         A_weekend_input, A_weekend_input_weights = prepare_pyg_batch(A_weekend_input)
         Location_location_input, Location_location_input_weights = prepare_pyg_batch(Location_location_input)
 
-        Temporal_input = Temporal_input.view(Temporal_input.size(0) * Temporal_input.size(1), Temporal_input.size(2))
-        Temporal_week_input = Temporal_week_input.view(Temporal_week_input.size(0) * Temporal_week_input.size(1), Temporal_week_input.size(2))
-        Temporal_weekend_input = Temporal_weekend_input.view(Temporal_weekend_input.size(0) * Temporal_weekend_input.size(1), Temporal_weekend_input.size(2))
-        Distance_input = Distance_input.view(Distance_input.size(0) * Distance_input.size(1), Distance_input.size(2))
-        Duration_input = Duration_input.view(Duration_input.size(0) * Duration_input.size(1), Duration_input.size(2))
-        Location_time_input = Location_time_input.view(Location_time_input.size(0) * Location_time_input.size(1), Location_time_input.size(2))
-
+        Temporal_input = Temporal_input.view(-1, Temporal_input.size(-1))
+        Temporal_week_input = Temporal_week_input.view(-1, Temporal_week_input.size(-1))
+        Temporal_weekend_input = Temporal_weekend_input.view(-1, Temporal_weekend_input.size(-1))
+        Distance_input = Distance_input.view(-1, Distance_input.size(-1))
+        Duration_input = Duration_input.view(-1, Duration_input.size(-1))
+        Location_time_input = Location_time_input.view(-1, Location_time_input.size(-1))
 
         out_temporal = F.elu(self.arma_conv_temporal(Temporal_input, A_input, A_input_weights))
         out_temporal = self.dropout_temporal(out_temporal)

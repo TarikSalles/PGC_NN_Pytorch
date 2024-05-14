@@ -20,7 +20,7 @@ from loader.file_loader import FileLoader
 from loader.poi_categorization_loader import PoiCategorizationLoader
 from model.gnn_base_model_for_transfer_learning import GNNUS_BaseModel
 from utils.nn_preprocessing import top_k_rows, split_graph, \
-    top_k_rows_category_user_tracking, prepare_pyg_batch, one_hot_decoding_predicted
+    top_k_rows_category_user_tracking
 
 
 class PoiCategorizationDomain:
@@ -621,7 +621,6 @@ class PoiCategorizationDomain:
                                   "Temporal (weekday)", "Temporal (weekend)", "Location_time", "Location_location"],
                               output_dir)
 
-
         input_train = [adjacency_train, adjacency_week_train, adjacency_train_weekend,
                        temporal_train, temporal_train_week, temporal_train_weekend, distance_train,
                        duration_train, location_time_train, location_location_train]
@@ -630,10 +629,8 @@ class PoiCategorizationDomain:
                       temporal_test_weekend,
                       distance_test, duration_test, location_time_test, location_location_test]
 
-
         np.save("temporal_train.npy", temporal_train)
         np.save("a_input.npy", adjacency_train)
-
 
         # verifying whether categories arrays are equal
         compare1 = y_train == y_train_week
@@ -652,7 +649,7 @@ class PoiCategorizationDomain:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.loss_fn = torch.nn.CrossEntropyLoss()  # Automatically applies Softmax for you
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)  #
+        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)
         self.batch_size = max_size * 4
         print("\nTamanho do batch_size: ", self.batch_size)
 
@@ -670,6 +667,7 @@ class PoiCategorizationDomain:
 
         train_dataset = TensorDataset(*input_train_tensor, y_train_tensor)
         test_dataset = TensorDataset(*input_test_tensor, y_test_tensor)
+
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
@@ -681,7 +679,7 @@ class PoiCategorizationDomain:
         h['acc'].append(accuracy)
         h['val_acc'].append(accuracy)
 
-        return h, report, model, accuracy
+        return h, report, self.model, accuracy
 
     # Training loop
     def train_model(self, train_loader, test_loader, epochs):
@@ -735,7 +733,7 @@ class PoiCategorizationDomain:
             val_correct = 0
             val_total = 0
 
-            with torch.no_grad():
+            with (torch.no_grad()):
                 for loaders in test_loader:
                     inputs, targets = loaders[:-1], loaders[-1].float()
 
@@ -745,17 +743,25 @@ class PoiCategorizationDomain:
                     outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
 
                     loss = self.loss_fn(outputs, targets)
+
                     val_running_loss += loss.item()
                     val_total += targets.size(0)
-                    val_correct += (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean().item()
+                    val_correct += (outputs.argmax(dim=-1) == targets.argmax(
+                        dim=-1)).float().mean().item()
 
             val_epoch_loss = val_running_loss / len(test_loader)
             val_epoch_acc = 100 * val_correct / val_total
             history['val_loss'].append(val_epoch_loss)
             history['val_acc'].append(val_epoch_acc)
 
+            loss_diff = epoch_loss - val_epoch_loss
+            acc_diff = epoch_acc - val_epoch_acc
+
             print(
-                f'Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.2f}%, Val_Loss: {val_epoch_loss:.4f}, Val_Acc: {val_epoch_acc:.2f}%')
+                f'Epoch {epoch + 1}/{epochs}\n'
+                f'Loss: {epoch_loss:.4f} | Val_Loss: {val_epoch_loss:.4f}: Loss Diff: {loss_diff:.4f}\n'
+                f'Val_Acc: {val_epoch_acc:.2f}% | Acc: {epoch_acc:.2f}%: Acc Diff: {acc_diff:.2f}%\n'
+            )
 
         return history
 
@@ -771,12 +777,10 @@ class PoiCategorizationDomain:
                 outputs = self.model(*inputs)
                 outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
 
-                y_pred.extend(one_hot_decoding_predicted(outputs.cpu().numpy()))
-                y_true.extend(one_hot_decoding_predicted(targets.cpu().numpy()))
-
+                y_pred.extend(outputs.argmax(dim=-1).flatten().cpu().numpy())
+                y_true.extend(targets.argmax(dim=-1).flatten().cpu().numpy())
 
         report = classification_report(y_true, y_pred, output_dict=True)
-        print(report)
         return report, report['accuracy']
 
     def heatmap_matrices(self, fold_number, matrices, names, output_dir):

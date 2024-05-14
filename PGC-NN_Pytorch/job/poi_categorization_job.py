@@ -264,7 +264,9 @@ class PoiCategorizationJob:
         base_report = self.poi_categorization_domain.preprocess_report(base_report, int_to_category)
         self.poi_categorization_loader.plot_history_metrics(folds_histories, base_report, output_dir)
         self.poi_categorization_loader.save_report_to_csv(output_dir, base_report, n_splits, n_replications, usuarios)
-        self.poi_categorization_loader.save_model_and_weights(model, output_dir, n_splits, n_replications)
+
+        # Skip for pytorch
+        # self.poi_categorization_loader.save_model_and_weights(model, output_dir, n_splits, n_replications)
         print("\nUsuarios processados: ", usuarios)
 
     def matrices_verification(self, df_list):
