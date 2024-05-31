@@ -102,33 +102,6 @@
 ### Dados
 
 
-1. **Informação sobre os dados utilizados**
-    **Colunas**
-      * userid, category, placeid, local_datetime, latitude, longitude, country_name, state_name
-
-       - userid = Id do usuário para aquele checkin
-
-       - category = Categoria do checkin, que se enquadra dentro das sete que serão descritas abaixo
-
-       - placeid = Id do local visitado no checkin
-
-       - local_datetime = data e hora da realização do checkin em formato time zone
-
-       - latitude = latitude do checkin visitado
-
-       - longitude = longitude do checkin visitado
-
-       - country_name = Nome do país onde foi realizado o checkin
-
-       - state_name = Nome do estado onde foi realizado o checkin
-
-    - Os dados são checkins preprocessados da base do gowala. Neles já possuem características importantes dos checkins
-      que são utilizadas nos modelos. Cada checkin possui informação da localização, horário, categoria do local
-      visitado o nome do país e o nome do estado
-    - Cada checkin está separado por estado, sendo todos os checkins de estados dos EUA.
-    - Os checkins possuem 7 categorias:
-    - 'Shopping', 'Community', 'Food', 'Entertainment', 'Travel', 'Outdoors', 'Nightlife'
-
 
 #### Output dos modelos
 
