@@ -166,7 +166,7 @@ Além dessas saídas, também é usado como comparação os gráficos de perda e
 
 
 
-#### Resultados Obtidos 
+## Resultados Obtidos 
 
   - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado os Estados `Alabama`, `Arizona` e `Virginia` para comparação, todos dos Estados Unidos (US). Foi utilizado como número de épocas para cada fold dos modelos `50` e `100`. Além disso, foi utilizado como tamanho de batch `36` e `48`.
   Os resultados obtidos podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
