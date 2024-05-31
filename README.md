@@ -25,26 +25,27 @@
    
     -Entrada: `(node features),(edge indices),(edge weights)`
 
-3. **Camada Densa**:
+
+2. **Camada Densa**:
    
     - **TensorFlow**: Usa camadas `Dense` para representar camadas Densas.
 
     - **PyTorch**: Usa camadas `Linear` para representar camadas Densas.
 
-5. **Variáveis de Multiplicação**:
+3. **Variáveis de Multiplicação**:
    
     - **TensorFlow**: Usa `tf.Variable` para fazer a multiplicação de certos resultados.
 
     - **PyTorch**: Usa `torch.tensor` para fazer a multiplicação de certos resultados.
 
-7. **Ativação das Camadas**:
+4. **Ativação das Camadas**:
    
     - **TensorFlow**: Feita de forma interna (dentro das camadas).
 
     - **PyTorch**: Feita de forma externa com `torch.nn.functional`.
 
 
-9. **Inicialização e Forward Pass**:
+5. **Inicialização e Forward Pass**:
     
     - **Tensorflow**: A inicialização das camadas e o fluxo de dados é feita diretamente na função `build`.
 
@@ -62,6 +63,7 @@
     - **PyTorch**: Os dados devem ser convertidos em tensores utilizando `torch.tensor` e movidos para o dispositivo
       apropriado (em ordem de disponibilidade: MPS, GPU, CPU) utilizando `.to(device)` durante o treino.
 
+
 2. **Compilação e Treinamento do Modelo**:
    
     - **TensorFlow**: O modelo é compilado com um otimizador, função de perda e métricas, e treinado
@@ -73,20 +75,21 @@
 
        - É utilizado das mesmas funções de perda e otimizador do tensorflow, mas em um formato compatível com Pytorch.
 
-4. **DataLoader**:
+
+3. **DataLoader**:
    
     - **TensorFlow**: Utiliza diretamente os arrays `numpy` representando as matrizes de adjacência, sem precisar de DataLoader.
 
     - **PyTorch**: Utiliza `torch.utils.data.TensorDataset` e `torch_geometric.data.DataLoader` para manusear os dados em mini-batches e mandá-los para o modelo apropriadamente.
 
-6. **Avaliação do Modelo**:
+4. **Avaliação do Modelo**:
    
     - **TensorFlow**: A avaliação é feita durante o treinamento com `model.evaluate`.
 
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-8. **Early Stopping**:
+5. **Early Stopping**:
    
     - O PyTorch não possui uma implementação para `tensorflow.keras.callbacks.EarlyStopping` usado no modelo em tensorflow. Por isso, foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau`, com o mesmo valor para o parâmetro `patience`. Mesmo não sendo crucial para o funcionamento do modelo, Early Stopping é uma boa prática para evitar que o modelo prossiga após um ponto que estivesse com um bom desempenho geral.
 
@@ -108,6 +111,7 @@
 
   - A lista de pesos dos vértices é usada como entrada na camada ArmaConv do Pytorch Geometric, e é criada com base na matriz de adjacência, sendo esse o motivo pelo qual não é uma entrada da ArmaConv do Spektral.
 
+
 2. **Entradas temporais e de espaço do modelo**
 
   - As outras entradas do modelo sofreram uma transformação de dimensão, reduzindo as suas dimensões para atenderem ao valor de entrada `input.size(0) * input.size(1),input.size(2)`.
@@ -121,6 +125,7 @@
 
 
 #### Output dos modelos
+
 
 1. **Métricas de precision, fscore e recall**
 
@@ -145,6 +150,7 @@ Além dessas saídas, também é usado como comparação os gráficos de perda e
    - É feita uma média dos valores de uma certa categoria para cada fold e para cada métrica,gerando assim um valor médio do modelo sobre aquela métrica e categoria em específico.
 
    - Feito isso, os valores médios de cada categoria e de cada métrica são comparados por histogramas, sendo possível assim notar se a diferença entre os resultados dos dois modelos é notória.
+
 
   2. **Valor Específico de categorias em cada métrica por fold**
 
