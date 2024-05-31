@@ -5,7 +5,8 @@
 ### Principais Diferenças no Modelo GNNUS_BaseModel
 
 1. **Camada ARMAConv**:
-    - **TensorFlow**: 
+    - **TensorFlow**:
+      
       -Implementada com a biblioteca Spektral.
       
       -Recebe como parâmetro o tamanho do input e output
@@ -14,7 +15,8 @@
       
       -Entrada: `(node features)`,`(normalized and rescaled Laplacian)`
 
-    - **PyTorch**: 
+    - **PyTorch**:
+      
     -Implementada com a biblioteca Pytorch Geometric.
 
     -Recebe como parâmetro o tamanho do input e output
@@ -24,22 +26,26 @@
     -Entrada: `(node features),(edge indices),(edge weights)`
 
 3. **Camada Densa**:
+   
     - **TensorFlow**: Usa camadas `Dense` para representar camadas Densas.
 
     - **PyTorch**: Usa camadas `Linear` para representar camadas Densas.
 
-4. **Variáveis de Multiplicação**:
+5. **Variáveis de Multiplicação**:
+   
     - **TensorFlow**: Usa `tf.Variable` para fazer a multiplicação de certos resultados.
 
     - **PyTorch**: Usa `torch.tensor` para fazer a multiplicação de certos resultados.
 
-5. **Ativação das Camadas**:
+7. **Ativação das Camadas**:
+   
     - **TensorFlow**: Feita de forma interna (dentro das camadas).
 
     - **PyTorch**: Feita de forma externa com `torch.nn.functional`.
 
 
-6. **Inicialização e Forward Pass**:
+9. **Inicialização e Forward Pass**:
+    
     - **Tensorflow**: A inicialização das camadas e o fluxo de dados é feita diretamente na função `build`.
 
     - **PyTorch**: A inicialização das camadas e a definição do fluxo de dados exigem que se sigam as
@@ -57,6 +63,7 @@
       apropriado (em ordem de disponibilidade: MPS, GPU, CPU) utilizando `.to(device)` durante o treino.
 
 2. **Compilação e Treinamento do Modelo**:
+   
     - **TensorFlow**: O modelo é compilado com um otimizador, função de perda e métricas, e treinado
       utilizando `model.fit`.
 
@@ -66,24 +73,28 @@
 
        - É utilizado das mesmas funções de perda e otimizador do tensorflow, mas em um formato compatível com Pytorch.
 
-3. **DataLoader**:
+4. **DataLoader**:
+   
     - **TensorFlow**: Utiliza diretamente os arrays `numpy` representando as matrizes de adjacência, sem precisar de DataLoader.
 
     - **PyTorch**: Utiliza `torch.utils.data.TensorDataset` e `torch_geometric.data.DataLoader` para manusear os dados em mini-batches e mandá-los para o modelo apropriadamente.
 
-4. **Avaliação do Modelo**:
+6. **Avaliação do Modelo**:
+   
     - **TensorFlow**: A avaliação é feita durante o treinamento com `model.evaluate`.
 
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-5. **Early Stopping**:
+8. **Early Stopping**:
+   
     - O PyTorch não possui uma implementação para `tensorflow.keras.callbacks.EarlyStopping` usado no modelo em tensorflow. Por isso, foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau`, com o mesmo valor para o parâmetro `patience`. Mesmo não sendo crucial para o funcionamento do modelo, Early Stopping é uma boa prática para evitar que o modelo prossiga após um ponto que estivesse com um bom desempenho geral.
 
 ### Mudanças na entrada do Modelo GNNUS_BaseModel para Pytorch
 
 
 1. **Matrizes de Adjacência**
+   
   - O modelo em Pytorch, mesmo recebendo as mesmas matrizes de adjacência que o modelo em tensorflow, precisou utilizar uma versão modificada delas.
 
   - A camada `torch_geometric.nn.conv.ArmaConv` do Pytorch possui uma entrada de tamanho `(2,E)` para os índices de vértice , diferente da camada `spektral.layers.convolutional.ArmaConv`. 
