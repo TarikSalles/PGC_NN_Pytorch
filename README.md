@@ -7,33 +7,39 @@
 1. **Camada ARMAConv**:
     - **TensorFlow**: 
       -Implementada com a biblioteca Spektral.
+      
       -Recebe como parâmetro o tamanho do input e output
+      
       -Recebe como parâmetro as funções de ativação da camada e da Graph Convolutional Network(GCN)
+      
       -Entrada: `(node features)`,`(normalized and rescaled Laplacian)`
 
     - **PyTorch**: 
     -Implementada com a biblioteca Pytorch Geometric.
+
     -Recebe como parâmetro o tamanho do input e output
+   
     -Recebe como parâmetro as funções de ativação da Graph Convolutional Network(GCN)
+   
     -Entrada: `(node features),(edge indices),(edge weights)`
 
-2. **Camada Densa**:
+3. **Camada Densa**:
     - **TensorFlow**: Usa camadas `Dense` para representar camadas Densas.
 
     - **PyTorch**: Usa camadas `Linear` para representar camadas Densas.
 
-3. **Variáveis de Multiplicação**:
+4. **Variáveis de Multiplicação**:
     - **TensorFlow**: Usa `tf.Variable` para fazer a multiplicação de certos resultados.
 
     - **PyTorch**: Usa `torch.tensor` para fazer a multiplicação de certos resultados.
 
-4. **Ativação das Camadas**:
+5. **Ativação das Camadas**:
     - **TensorFlow**: Feita de forma interna (dentro das camadas).
 
     - **PyTorch**: Feita de forma externa com `torch.nn.functional`.
 
 
-5. **Inicialização e Forward Pass**:
+6. **Inicialização e Forward Pass**:
     - **Tensorflow**: A inicialização das camadas e o fluxo de dados é feita diretamente na função `build`.
 
     - **PyTorch**: A inicialização das camadas e a definição do fluxo de dados exigem que se sigam as
