@@ -27,13 +27,13 @@
 
     - **PyTorch**:
       
-    -Implementada com a biblioteca Pytorch Geometric.
-
-    -Recebe como parâmetro o tamanho do input e output
-   
-    -Recebe como parâmetro as funções de ativação da Graph Convolutional Network(GCN).
-   
-    -Entrada: `(node features),(edge indices),(edge weights)`.
+        -Implementada com a biblioteca Pytorch Geometric.
+    
+        -Recebe como parâmetro o tamanho do input e output
+       
+        -Recebe como parâmetro as funções de ativação da Graph Convolutional Network(GCN).
+       
+        -Entrada: `(node features),(edge indices),(edge weights)`.
 
 
 2. **Camada Densa**:
