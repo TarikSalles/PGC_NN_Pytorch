@@ -339,6 +339,9 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![F-score](Tabelas/Virginia/fscore_48_100.png)
 
-##Resultados Gerais
+#
+# Resultados Gerais
+#
+
   Todos os resultados obtidos para os Estados `Alabama, Arizona, Virginia` , com o número de épocas `50, 100` e tamanho de batch `36, 48`  podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
   
