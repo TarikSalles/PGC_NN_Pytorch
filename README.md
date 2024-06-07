@@ -130,11 +130,11 @@
 
 
 
-### Dados
+## Saída do Modelo e Medidas de Comparação
 
 
 
-#### Output dos modelos
+### Output dos modelos
 
 
 1. **Métricas de precision, fscore e recall**:
@@ -152,7 +152,7 @@
 converge para algum ponto após um determinado número de épocas. Também pode ser útil para analisar a necessidade da mudança de valores de hiperparâmetros e o uso de métodos como `EarlyStopping` são necessários, caso seja notado o aumento do loss do modelo após um certo número de épocas.
 
 
-#### Comparação dos resultados dos modelos de Tensorflow e Pytorch
+### Comparação dos resultados dos modelos de Tensorflow e Pytorch
 
 - A base de comparação entre os modelos são as saídas dos modelos disponíveis na pasta `output` no final da execução, sendo as saídas `precision.csv`,`recall.csv` e `fscore.csv`, possuindo um `n` número de linhas (correspondendo ao número de folds, por padrão 5) e 7 colunas (correspondendo às 7 categorias).
 Além dessas saídas, também é usado como comparação os gráficos de perda e a acurácia gerados para cada fold, disponível também na pasta "output" no final da execução.
