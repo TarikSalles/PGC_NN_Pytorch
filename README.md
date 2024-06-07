@@ -190,7 +190,13 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 
     --Número de Épocas 100
-      
+
+  ![screenshot](Tabelas/Alabama/precisao_36_100.png)
+
+  ![screenshot](Tabelas/Alabama/recall_36_100.png)
+
+  ![screenshot](Tabelas/Alabama/fscore_36_100.png)
+
 
 - Tamanho de Batch 48
   
