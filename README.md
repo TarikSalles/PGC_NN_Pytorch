@@ -224,7 +224,104 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ![Recall](Tabelas/Alabama/recall_48_100.png)
 
 ![F-score](Tabelas/Alabama/fscore_48_100.png)
-  
+
+
+## Arizona
+
+
+### Tamanho de Batch 36
+
+
+
+
+####     Número de Épocas 50
+
+
+![Precisão](Tabelas/Arizona/precisao_36_50.png)
+
+![Recall](Tabelas/Arizona/recall_36_50.png)
+
+![F-score](Tabelas/Arizona/fscore_36_50.png)
+
+####     Número de Épocas 100
+
+
+![Precisão](Tabelas/Arizona/precisao_36_100.png)
+
+![Recall](Tabelas/Arizona/recall_36_100.png)
+
+![F-score](Tabelas/Arizona/fscore_36_100.png)
+
+
+### Tamanho de Batch 48
+
+
+
+
+####     Número de Épocas 50
+
+
+![Precisão](Tabelas/Arizona/precisao_48_50.png)
+
+![Recall](Tabelas/Arizona/recall_48_50.png)
+
+![F-score](Tabelas/Arizona/fscore_48_50.png)
+
+####     Número de Épocas 100
+![Precisão](Tabelas/Arizona/precisao_48_100.png)
+
+![Recall](Tabelas/Arizona/recall_48_100.png)
+
+![F-score](Tabelas/Arizona/fscore_48_100.png)
+
+
+## Virginia
+
+
+### Tamanho de Batch 36
+
+
+
+
+####     Número de Épocas 50
+
+
+![Precisão](Tabelas/Virginia/precisao_36_50.png)
+
+![Recall](Tabelas/Virginia/recall_36_50.png)
+
+![F-score](Tabelas/Virginia/fscore_36_50.png)
+
+####     Número de Épocas 100
+
+
+![Precisão](Tabelas/Virginia/precisao_36_100.png)
+
+![Recall](Tabelas/Virginia/recall_36_100.png)
+
+![F-score](Tabelas/Virginia/fscore_36_100.png)
+
+
+### Tamanho de Batch 48
+
+
+
+
+####     Número de Épocas 50
+
+
+![Precisão](Tabelas/Virginia/precisao_48_50.png)
+
+![Recall](Tabelas/Virginia/recall_48_50.png)
+
+![F-score](Tabelas/Virginia/fscore_48_50.png)
+
+####     Número de Épocas 100
+![Precisão](Tabelas/Virginia/precisao_48_100.png)
+
+![Recall](Tabelas/Virginia/recall_48_100.png)
+
+![F-score](Tabelas/Virginia/fscore_48_100.png)
 
 
   Os resultados obtidos podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
