@@ -349,5 +349,7 @@ disponíveis. Mas, caso queira executá-lo, favor seguir as seguintes instruçõ
 ## Como executar o notebook .ipynb como os resultados das métricas
 
  - Para executar o notebook .ipynb, é necessário possuir a pasta contendo os resultados dos modelos, para isso, faça o download da seguinte [pasta do google drive](https://drive.google.com/drive/folders/1eyRU37sItd8dNA601Ykgwm2vkIDoHQwG?usp=drive_link).
+ - A pasta contêm os resultados da execução separados por modelo (Pytorch e Tensorflow) e por época e tamanho de batch.
+ - Além desses conteúdos, a pasta tambêm contem os k_folds utilizados pelos modelos (`k_folds_torch`), e os dados `.csv` dos Estados utilizados na pasta `checkins`.
  - Após baixar o arquivo, extrai o .zip em seu google drive.
  - Caso opte por colocar a pasta extraída no google drive (Testes_Acuracia), monte o google drive no notebook colab e o execute normalmente.
