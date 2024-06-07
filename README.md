@@ -1,5 +1,7 @@
 ## Relatório: Transformação do modelo PGC-NN de Tensorflow para Pytorch
 
+## Informações gerais sobre dados utilizados e como executar o modelo PGC-NN
+
 ### Dados utilizados pelo modelo PGC-NN
 
 - O modelo PGC-NN utiliza do conjunto de dados [Gowalla](https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN_Pytorch/docs/matrix_generation.md).
