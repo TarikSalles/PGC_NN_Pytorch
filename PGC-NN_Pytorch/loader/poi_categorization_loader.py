@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.models import save_model
 import seaborn as sns
+import torch 
 
 class PoiCategorizationLoader:
 
@@ -117,4 +118,4 @@ class PoiCategorizationLoader:
     def save_model_and_weights(self, model, output_dir, n_folds, n_replications):
         output_dir = output_dir + str(n_folds) + "_folds/" + str(n_replications) + "_replications/"
         Path(output_dir).mkdir(parents=True, exist_ok=True)
-        model.save('model.pth')
+        torch.save(model,'model.pth')
