@@ -192,7 +192,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
   - Foi construído uma tabela para cada combinação de tamanho de batch e épocas para cada Estado, para fins de comparação das 3 métricas para cada categoria.
   - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
   - A seguir, todas as tabelas serão mostradas.
-
+##
 ## Alabama
 ##
 
