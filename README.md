@@ -203,6 +203,10 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ## Alabama
 ##
 
+### Porcentagem de Locais por Categoria
+
+![Alabama](Tabelas/Alabama/porcentagem_categorias.png)
+
 ### Tamanho de Batch 36
 
 
@@ -252,6 +256,10 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ## Arizona
 ##
 
+### Porcentagem de Locais por Categoria
+
+![Arizona](Tabelas/Arizona/porcentagem_categorias.png)
+
 ### Tamanho de Batch 36
 
 
@@ -300,6 +308,10 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ##
 ## Virginia
 ##
+
+### Porcentagem de Locais por Categoria
+
+![Virginia](Tabelas/Virginia/porcentagem_categorias.png)
 
 ### Tamanho de Batch 36
 
