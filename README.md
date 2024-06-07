@@ -179,8 +179,10 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ###Alabama
 - Tamanho de Batch 36
+- 
     --Número de Épocas 50
-        ![36_50_Alabama](Tabelas/Alabama_36_50.PNG?raw=true "Title")
+  
+        ![screenshot](Tabelas/Alabama/36_50.PNG)
 
 
     --Número de Épocas 100
