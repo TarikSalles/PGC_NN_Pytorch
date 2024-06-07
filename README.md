@@ -186,14 +186,14 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 
 
-## Resultados Obtidos 
+# Resultados Obtidos 
 
   - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado os Estados `Alabama`, `Arizona` e `Virginia` para comparação, todos dos Estados Unidos (US). Foi utilizado como número de épocas para cada fold dos modelos `50` e `100`. Além disso, foi utilizado como tamanho de batch `36` e `48`.
   - Foi construído uma tabela para cada combinação de tamanho de batch e épocas para cada Estado, para fins de comparação das 3 métricas para cada categoria.
   - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
   - A seguir, todas as tabelas serão mostradas.
 
-### Alabama
+## Alabama
 
 
 ### Tamanho de Batch 36
@@ -242,7 +242,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ![F-score](Tabelas/Alabama/fscore_48_100.png)
 
 
-### Arizona
+## Arizona
 
 
 ### Tamanho de Batch 36
@@ -291,7 +291,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ![F-score](Tabelas/Arizona/fscore_48_100.png)
 
 
-### Virginia
+## Virginia
 
 
 ### Tamanho de Batch 36
