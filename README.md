@@ -1,4 +1,12 @@
-## Relatório: Transformação do PGC-NN de Tensorflow para Pytorch
+## Relatório: Transformação do modelo PGC-NN de Tensorflow para Pytorch
+
+### Dados utilizados pelo modelo PGC-NN
+
+    O modelo PGC-NN utiliza do conjunto de dados [Gowalla] (https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui]  (https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN/docs/matrix_generation.md).
+    
+### Como Executar o modelo PGC-NN
+
+    Afim de executar o modelo PGC-NN nas versões de Tensorflow e Pytorch, assim como gerar os dados no formato necessário para esses, leia as  [seguintes instruções](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN/README.md).
 
 
 
@@ -9,11 +17,11 @@
       
       -Implementada com a biblioteca Spektral.
       
-      -Recebe como parâmetro o tamanho do input e output
+      -Recebe como parâmetro o tamanho do input e output.
       
-      -Recebe como parâmetro as funções de ativação da camada e da Graph Convolutional Network(GCN)
+      -Recebe como parâmetro as funções de ativação da camada e da Graph Convolutional Network(GCN).
       
-      -Entrada: `(node features)`,`(normalized and rescaled Laplacian)`
+      -Entrada: `(node features)`,`(normalized and rescaled Laplacian)`.
 
     - **PyTorch**:
       
@@ -21,9 +29,9 @@
 
     -Recebe como parâmetro o tamanho do input e output
    
-    -Recebe como parâmetro as funções de ativação da Graph Convolutional Network(GCN)
+    -Recebe como parâmetro as funções de ativação da Graph Convolutional Network(GCN).
    
-    -Entrada: `(node features),(edge indices),(edge weights)`
+    -Entrada: `(node features),(edge indices),(edge weights)`.
 
 
 2. **Camada Densa**:
@@ -89,14 +97,14 @@
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-5. **Redução da taxa de Aprendizado**:
+5. **Método da Redução da Taxa de Aprendizado**:
    
     - Foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau` para fazer uma redução gradual da taxa de aprendizado do modelo caso não haja melhoras significativas (um limite determinado por `threshold`) em um número de épocas determinado como `patience` para uma determinada métrica, a taxa de aprendizado é então reduzida em um valor do parâmetro `factor`. Mesmo não sendo crucial para o funcionamento do modelo, a redução da taxa de aprendizado é uma boa prática para que o modelo prossiga para um maior desempenho.
 
 ### Mudanças na entrada do Modelo GNNUS_BaseModel para Pytorch
 
 
-1. **Matrizes de Adjacência**
+1. **Matrizes de Adjacência**:
    
   - O modelo em Pytorch, mesmo recebendo as mesmas matrizes de adjacência que o modelo em tensorflow, precisou utilizar uma versão modificada delas.
 
@@ -112,7 +120,7 @@
   - A lista de pesos dos vértices é usada como entrada na camada ArmaConv do Pytorch Geometric, e é criada com base na matriz de adjacência, sendo esse o motivo pelo qual não é uma entrada da ArmaConv do Spektral.
 
 
-2. **Entradas temporais e de espaço do modelo**
+2. **Entradas temporais e de espaço do modelo**:
 
   - As outras entradas do modelo sofreram uma transformação de dimensão, reduzindo as suas dimensões para atenderem ao valor de entrada `input.size(0) * input.size(1),input.size(2)`.
 
@@ -127,13 +135,19 @@
 #### Output dos modelos
 
 
-1. **Métricas de precision, fscore e recall**
+1. **Métricas de precision, fscore e recall**:
 
-- Após o treinamento dos modelos, eles retornam as métricas `precision`, `fscore` e `recall` para cada uma das 7 categorias. Essas três métricas medem o desempenho de cada modelo em um aspecto distinto. Sendo `VP` verdadeiros positivos, ou seja, valores que o modelo mediu corretamente, `FP` falsos positivos, ou seja,  valores que o modelo previu como positivos, mas que na realidade são negativos e `FN` falsos negativos, ou seja, valores que o modelo previu como negativos, mas que na realidade são positivos. É visto a seguir como as ditas métricas funcionam.
+- Após o treinamento dos modelos, os modelos retornam as métricas `precision`, `fscore` e `recall` para cada uma das categorias. Essas três métricas medem o desempenho de cada modelo em um aspecto distinto. Sendo `VP` verdadeiros positivos, ou seja, valores que o modelo mediu corretamente, `FP` falsos positivos, ou seja,  valores que o modelo previu como positivos, mas que na realidade são negativos e `FN` falsos negativos, ou seja, valores que o modelo previu como negativos, mas que na realidade são positivos. É visto a seguir como as ditas métricas funcionam.
 
 - Precisão = (Va)/(VP + FP)
 - Fscore = 2 * (VP) / (VP + 0.5 * (FP + FN))
 - Recall = (VP)/(VP + FN)
+
+2. **Gráficos de Perda e Acurácia por Época**:
+
+- Após o treinamento dos modelos, os modelos também retornam gráficos em formato de imagens, mostrando a perda e a acurácia dos modelos com o passar das épocas para cada fold disponível.
+- Esse retorno é relevante para analisar se o desempenho do modelo.
+converge para algum ponto após um determinado número de épocas. Também pode ser útil para analisar a necessidade da mudança de valores de hiperparâmetros e o uso de métodos como `EarlyStopping` são necessários, caso seja notado o aumento do loss do modelo após um certo número de épocas.
 
 
 #### Comparação dos resultados dos modelos de Tensorflow e Pytorch
@@ -141,11 +155,11 @@
 - A base de comparação entre os modelos são as saídas dos modelos disponíveis na pasta `output` no final da execução, sendo as saídas `precision.csv`,`recall.csv` e `fscore.csv`, possuindo um `n` número de linhas (correspondendo ao número de folds, por padrão 5) e 7 colunas (correspondendo às 7 categorias).
 Além dessas saídas, também é usado como comparação os gráficos de perda e a acurácia gerados para cada fold, disponível também na pasta "output" no final da execução.
 
-- Os modelos são comparados com o mesmo número de épocas e o mesmo tamanho de batch, para não haver discrepâncias.
+- Os modelos são comparados com o mesmo número de épocas, o mesmo tamanho de batch, e os mesmos folds, para não haver discrepâncias.
 
 - A comparação entre as métricas é feita da seguinte forma.
   
-   1. **Valor Médio de Categorias em cada métrica por fold**
+   1. **Valor Médio de Categorias em cada métrica por fold**:
    
    - É feita uma média dos valores de uma certa categoria para cada fold e para cada métrica,gerando assim um valor médio do modelo sobre aquela métrica e categoria em específico.
 
@@ -323,6 +337,6 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![F-score](Tabelas/Virginia/fscore_48_100.png)
 
-
-  Os resultados obtidos podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
+##Resultados Gerais
+  Todos os resultados obtidos para os Estados `Alabama, Arizona, Virginia` , com o número de épocas `50, 100` e tamanho de batch `36, 48`  podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
   
