@@ -183,7 +183,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ### Tamanho de Batch 36
 
 
-#### Número de Épocas 50
+####     Número de Épocas 50
 
 
 ![Precisão](Tabelas/Alabama/precisao_36_50.png)
@@ -192,7 +192,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![F-score](Tabelas/Alabama/fscore_36_50.png)
 
-#### Número de Épocas 100
+####     Número de Épocas 100
 
 
 ![Precisão](Tabelas/Alabama/precisao_36_100.png)
@@ -204,7 +204,16 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ### Tamanho de Batch 48
 
+####     Número de Épocas 50
 
+
+![Precisão](Tabelas/Alabama/precisao_48_50.png)
+
+![Recall](Tabelas/Alabama/recall_48_50.png)
+
+![F-score](Tabelas/Alabama/fscore_48_50.png)
+
+####     Número de Épocas 100
 ![Precisão](Tabelas/Alabama/precisao_48_100.png)
 
 ![Recall](Tabelas/Alabama/recall_48_100.png)
