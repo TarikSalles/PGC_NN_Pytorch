@@ -194,7 +194,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
   - A seguir, todas as tabelas serão mostradas.
 
 ## Alabama
-
+##
 
 ### Tamanho de Batch 36
 
@@ -241,9 +241,9 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![F-score](Tabelas/Alabama/fscore_48_100.png)
 
-
+##
 ## Arizona
-
+##
 
 ### Tamanho de Batch 36
 
@@ -290,9 +290,9 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![F-score](Tabelas/Arizona/fscore_48_100.png)
 
-
+##
 ## Virginia
-
+##
 
 ### Tamanho de Batch 36
 
