@@ -11,7 +11,7 @@
 - Afim de executar o modelo PGC-NN nas versões de Tensorflow e Pytorch, assim como gerar os dados no formato necessário para esses, leia as  [seguintes instruções](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN_Pytorch/README.md).
 
 
-
+## Diferenças e Mudanças entre as versões Pytorch e Tensorflow
 ### Principais Diferenças no Modelo GNNUS_BaseModel
 
 1. **Camada ARMAConv**:
