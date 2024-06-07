@@ -193,7 +193,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
   - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
   - A seguir, todas as tabelas serão mostradas.
 
-## Alabama
+### Alabama
 
 
 ### Tamanho de Batch 36
@@ -242,7 +242,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ![F-score](Tabelas/Alabama/fscore_48_100.png)
 
 
-## Arizona
+### Arizona
 
 
 ### Tamanho de Batch 36
@@ -291,7 +291,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ![F-score](Tabelas/Arizona/fscore_48_100.png)
 
 
-## Virginia
+### Virginia
 
 
 ### Tamanho de Batch 36
