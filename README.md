@@ -89,9 +89,9 @@
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-5. **Early Stopping**:
+5. **Redução da taxa de Aprendizado**:
    
-    - O PyTorch não possui uma implementação para `tensorflow.keras.callbacks.EarlyStopping` usado no modelo em tensorflow. Por isso, foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau`, com o mesmo valor para o parâmetro `patience`. Mesmo não sendo crucial para o funcionamento do modelo, Early Stopping é uma boa prática para evitar que o modelo prossiga após um ponto que estivesse com um bom desempenho geral.
+    - Foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau` para fazer uma redução gradual da taxa de aprendizado do modelo caso não haja melhoras significativas (um limite determinado por `threshold`) em um número de épocas determinado como `patience` para uma determinada métrica, a taxa de aprendizado é então reduzida em um valor do parâmetro `factor`. Mesmo não sendo crucial para o funcionamento do modelo, a redução da taxa de aprendizado é uma boa prática para que o modelo prossiga para um maior desempenho.
 
 ### Mudanças na entrada do Modelo GNNUS_BaseModel para Pytorch
 
@@ -156,11 +156,15 @@ Além dessas saídas, também é usado como comparação os gráficos de perda e
 
     - É também analisado o valor de uma certa categoria por fold para cada métrica.
 
-    - Assim, os valores de cada fold para cada métrica e cada categoria são comparados por histogramas. Isso pode se provar melhor do que a comparação do valor 
-  médio pois há a possibilidade de não haver uma dependência entre cada fold.
+    - Assim, os valores de cada fold para cada métrica e cada categoria são comparados por histogramas.
+ 
+    - Para garantir o uso dos mesmos folds por modelo, foi utilizado da biblioteca `joblib` para salvar os k_folds dos índices utilizados pelos modelos em Pytorch durante o treino. Após isso,
+foi utilizado da biblioteca `pickle` para carregar os arquivos `.pkl`, separados pelo tipo de semana `week.pkl`,`weekend.pkl` e `all_week.pkl`, para os modelos em Tensorflow.
+Isso foi feito a comparação entre os dois modelos com dados similares, tendo em vista que os k_folds separam os índices aleatoriamente, feito com todas as combinações de `batch_size` e `epochs` em cada Estado, não sendo repetidos entre si.
+
 
   **Análise da Perda e Acurácia dos Modelos**
-  - Além das análises das 3 métricas, como dito também é analisado o valor da perda e da acurácia dos modelos. 
+  - Além das análises das 3 métricas, também é analisado o valor da perda e da acurácia dos modelos. 
 
   - Assim, os gráficos são comparados entre os dois modelos para que seja possível ver se seguem por um mesmo caminho (para a diminuição da perda ao longo das épocas).
 
@@ -169,5 +173,22 @@ Além dessas saídas, também é usado como comparação os gráficos de perda e
 ## Resultados Obtidos 
 
   - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado os Estados `Alabama`, `Arizona` e `Virginia` para comparação, todos dos Estados Unidos (US). Foi utilizado como número de épocas para cada fold dos modelos `50` e `100`. Além disso, foi utilizado como tamanho de batch `36` e `48`.
+  - Foi construído uma tabela para cada combinação de tamanho de batch e épocas para cada Estado, para fins de comparação das 3 métricas para cada categoria.
+  - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
+  - A seguir, todas as tabelas serão mostradas.
+
+###Alabama
+- Tamanho de Batch 36
+    --Número de Épocas 50
+        ![36_50_Alabama](Tabelas/Alabama_36_50.PNG?raw=true "Title")
+
+
+    --Número de Épocas 100
+      
+
+- Tamanho de Batch 48
+  
+
+
   Os resultados obtidos podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb).
   
