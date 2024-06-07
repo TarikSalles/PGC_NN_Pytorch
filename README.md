@@ -182,7 +182,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 - 
     --Número de Épocas 50
   
-  ![screenshot](Tabelas/Alabama/36_50.jpg)
+  ![screenshot](Tabelas/Alabama/36_50.JPG)
 
 
     --Número de Épocas 100
