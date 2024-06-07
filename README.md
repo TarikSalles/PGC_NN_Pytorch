@@ -2,7 +2,7 @@
 
 ### Dados utilizados pelo modelo PGC-NN
 
-- O modelo PGC-NN utiliza do conjunto de dados [Gowalla] (https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN/docs/matrix_generation.md).
+- O modelo PGC-NN utiliza do conjunto de dados [Gowalla](https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN/docs/matrix_generation.md).
     
 ### Como Executar o modelo PGC-NN
 
