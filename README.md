@@ -183,6 +183,8 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ### Tamanho de Batch 36
 
 
+
+
 ####     Número de Épocas 50
 
 
@@ -203,6 +205,9 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 
 ### Tamanho de Batch 48
+
+
+
 
 ####     Número de Épocas 50
 
