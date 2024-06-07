@@ -103,6 +103,13 @@
    
     - Foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau` para fazer uma redução gradual da taxa de aprendizado do modelo caso não haja melhoras significativas (um limite determinado por `threshold`) em um número de épocas determinado como `patience` para uma determinada métrica, a taxa de aprendizado é então reduzida em um valor do parâmetro `factor`. Mesmo não sendo crucial para o funcionamento do modelo, a redução da taxa de aprendizado é uma boa prática para que o modelo prossiga para um maior desempenho.
 
+6. **Salvar o modelo**:
+   
+    - **TensorFlow**: Utiliza da função `.save()` do próprio modelo para o salvar como arquivo `.h5`.
+
+    - **PyTorch**: Utiliza da função `torch.save()` para salvar o modelo como arquivo `.pth`.
+
+
 ### Mudanças na entrada do Modelo GNNUS_BaseModel para Pytorch
 
 
