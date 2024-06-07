@@ -99,7 +99,7 @@
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-5. **Método da Redução da Taxa de Aprendizado**:
+5. **Método da Redução da Taxa de Aprendizado (Pytorch)**:
    
     - Foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau` para fazer uma redução gradual da taxa de aprendizado do modelo caso não haja melhoras significativas (um limite determinado por `threshold`) em um número de épocas determinado como `patience` para uma determinada métrica, a taxa de aprendizado é então reduzida em um valor do parâmetro `factor`. Mesmo não sendo crucial para o funcionamento do modelo, a redução da taxa de aprendizado é uma boa prática para que o modelo prossiga para um maior desempenho.
 
