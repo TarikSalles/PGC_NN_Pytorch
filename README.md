@@ -177,11 +177,14 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
   - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
   - A seguir, todas as tabelas serão mostradas.
 
-##Alabama
+## Alabama
+
 
 ### Tamanho de Batch 36
 
+
 #### Número de Épocas 50
+
 
 ![Precisão](Tabelas/Alabama/precisao_36_50.png)
 
@@ -191,6 +194,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 #### Número de Épocas 100
 
+
 ![Precisão](Tabelas/Alabama/precisao_36_100.png)
 
 ![Recall](Tabelas/Alabama/recall_36_100.png)
@@ -199,6 +203,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 
 ### Tamanho de Batch 48
+
 
 ![Precisão](Tabelas/Alabama/precisao_48_100.png)
 
