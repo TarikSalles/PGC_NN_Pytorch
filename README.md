@@ -349,6 +349,5 @@ disponíveis. Mas, caso queira executá-lo, favor seguir as seguintes instruçõ
 ## Como executar o notebook .ipynb como os resultados das métricas
 
  - Para executar o notebook .ipynb, é necessário possuir a pasta contendo os resultados dos modelos, para isso, faça o download da seguinte [pasta do google drive](https://drive.google.com/drive/folders/1eyRU37sItd8dNA601Ykgwm2vkIDoHQwG?usp=drive_link).
- - Após baixar o arquivo, é recomendado que o .zip seja extraído em seu google drive.
+ - Após baixar o arquivo, extrai o .zip em seu google drive.
  - Caso opte por colocar a pasta extraída no google drive (Testes_Acuracia), monte o google drive no notebook colab e o execute normalmente.
- - Caso opte por não colocar a pasta no google drive, faça o upload do .zip no notebook colab, e descomente a primeira célula.
