@@ -215,20 +215,14 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Alabama/precisao_36_50.png)
+![Alabama 36 batch 50 épocas ](Tabelas/Alabama/36_50.png)
 
-![Recall](Tabelas/Alabama/recall_36_50.png)
-
-![F-score](Tabelas/Alabama/fscore_36_50.png)
 
 ####     Número de Épocas 100
 
 
-![Precisão](Tabelas/Alabama/precisao_36_100.png)
+![Alabama 36 batch 100 épocas ](Tabelas/Alabama/36_100.png)
 
-![Recall](Tabelas/Alabama/recall_36_100.png)
-
-![F-score](Tabelas/Alabama/fscore_36_100.png)
 
 
 ### Tamanho de Batch 48
@@ -239,18 +233,11 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Alabama/precisao_48_50.png)
+![Alabama 48 batch 50 épocas ](Tabelas/Alabama/48_50.png)
 
-![Recall](Tabelas/Alabama/recall_48_50.png)
-
-![F-score](Tabelas/Alabama/fscore_48_50.png)
 
 ####     Número de Épocas 100
-![Precisão](Tabelas/Alabama/precisao_48_100.png)
-
-![Recall](Tabelas/Alabama/recall_48_100.png)
-
-![F-score](Tabelas/Alabama/fscore_48_100.png)
+![Alabama 48 batch 100 épocas ](Tabelas/Alabama/48_100.png)
 
 ##
 ## Arizona
@@ -268,20 +255,13 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Arizona/precisao_36_50.png)
+![Arizona 36 batch 50 épocas ](Tabelas/Arizona/36_50.png)
 
-![Recall](Tabelas/Arizona/recall_36_50.png)
-
-![F-score](Tabelas/Arizona/fscore_36_50.png)
 
 ####     Número de Épocas 100
 
+![Arizona 36 batch 100 épocas ](Tabelas/Arizona/36_100.png)
 
-![Precisão](Tabelas/Arizona/precisao_36_100.png)
-
-![Recall](Tabelas/Arizona/recall_36_100.png)
-
-![F-score](Tabelas/Arizona/fscore_36_100.png)
 
 
 ### Tamanho de Batch 48
@@ -292,18 +272,13 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Arizona/precisao_48_50.png)
+![Arizona 48 batch 50 épocas ](Tabelas/Arizona/48_50.png)
 
-![Recall](Tabelas/Arizona/recall_48_50.png)
-
-![F-score](Tabelas/Arizona/fscore_48_50.png)
 
 ####     Número de Épocas 100
-![Precisão](Tabelas/Arizona/precisao_48_100.png)
 
-![Recall](Tabelas/Arizona/recall_48_100.png)
+![Arizona 48 batch 100 épocas ](Tabelas/Arizona/48_100.png)
 
-![F-score](Tabelas/Arizona/fscore_48_100.png)
 
 ##
 ## Virginia
@@ -321,20 +296,14 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Virginia/precisao_36_50.png)
+![Virginia 36 batch 50 épocas ](Tabelas/Virginia/36_50.png)
 
-![Recall](Tabelas/Virginia/recall_36_50.png)
-
-![F-score](Tabelas/Virginia/fscore_36_50.png)
 
 ####     Número de Épocas 100
 
 
-![Precisão](Tabelas/Virginia/precisao_36_100.png)
+![Virginia 36 batch 100 épocas ](Tabelas/Virginia/36_100.png)
 
-![Recall](Tabelas/Virginia/recall_36_100.png)
-
-![F-score](Tabelas/Virginia/fscore_36_100.png)
 
 
 ### Tamanho de Batch 48
@@ -345,18 +314,11 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Precisão](Tabelas/Virginia/precisao_48_50.png)
+![Virginia 48 batch 50 épocas ](Tabelas/Virginia/48_50.png)
 
-![Recall](Tabelas/Virginia/recall_48_50.png)
-
-![F-score](Tabelas/Virginia/fscore_48_50.png)
 
 ####     Número de Épocas 100
-![Precisão](Tabelas/Virginia/precisao_48_100.png)
-
-![Recall](Tabelas/Virginia/recall_48_100.png)
-
-![F-score](Tabelas/Virginia/fscore_48_100.png)
+![Virginia 48 batch 100 épocas ](Tabelas/Virginia/48_100.png)
 
 #
 # Resultados Gerais
