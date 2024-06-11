@@ -197,7 +197,9 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
   - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado os Estados `Alabama`, `Arizona` e `Virginia` para comparação, todos dos Estados Unidos (US). Foi utilizado como número de épocas para cada fold dos modelos `50` e `100`. Além disso, foi utilizado como tamanho de batch `36` e `48`.
   - Foi construído uma tabela para cada combinação de tamanho de batch e épocas para cada Estado, para fins de comparação das 3 métricas para cada categoria.
-  - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui 10 colunas, representando os 5 folds dOS dois modelos PGC-NN.
+  - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui uma coluna, que apresenta o resultado da média de todos os folds para cada métrica, juntamente com um erro para esse valor.
+  - A média utilizada é a aritmética, que é calculada somando os valores de todos os folds de uma determinada métrica e dividindo pelo número de folds total(no caso deste exemplo, 5).
+  - O erro é calculado da seguinte forma: (max_fold - min_fold) / (num_folds). Onde: max_fold = maior valor de um fold para uma determinada métrica. min_fold = menor valor de um fold para uma determinada métrica. num_folds = número total de folds .
   - A seguir, todas as tabelas serão mostradas.
 ##
 ## Alabama
