@@ -59,9 +59,7 @@ class GNNUS_BaseModel(nn.Module):
         self.arma_conv_distance = ARMAConv(-1, 20,
                                            num_stacks=1,  # ?
                                            num_layers=1,  # Order
-                                           act=nn.GELU(),
-                                           shared_weights=share_weights,
-                                           dropout=dropout_skip)
+                                           act=nn.GELU())
         self.dropout_distance = nn.Dropout(0.3)
         self.arma_conv_final_distance = ARMAConv(-1, self.classes)
 
@@ -69,9 +67,7 @@ class GNNUS_BaseModel(nn.Module):
         self.arma_conv_duration = ARMAConv(-1, 20,
                                            num_stacks=1,  # ?
                                            num_layers=1,  # Order
-                                           act=nn.GELU(),
-                                           shared_weights=share_weights,
-                                           dropout=dropout_skip)
+                                           act=nn.GELU())
         self.dropout_duration = nn.Dropout(0.3)
         self.arma_conv_final_duration = ARMAConv(-1, self.classes)
 
@@ -79,9 +75,7 @@ class GNNUS_BaseModel(nn.Module):
         self.arma_conv_location_time = ARMAConv(-1, 20,
                                                 num_stacks=1,  # ?
                                                 num_layers=1,  # Order
-                                                act=nn.GELU(),
-                                                shared_weights=share_weights,
-                                                dropout=dropout_skip)
+                                                act=nn.GELU())
         self.dropout_location_time = nn.Dropout(0.3)
         self.arma_conv_final_location_time = ARMAConv(-1, self.classes)
 
@@ -105,19 +99,20 @@ class GNNUS_BaseModel(nn.Module):
 
     def forward(self, A_input, A_week_input, A_weekend_input, Temporal_input, Temporal_week_input,
                 Temporal_weekend_input, Distance_input, Duration_input, Location_time_input, Location_location_input):
-
         A_input, A_input_weights = prepare_pyg_batch(A_input)
         A_week_input, A_week_input_weights = prepare_pyg_batch(A_week_input)
         A_weekend_input, A_weekend_input_weights = prepare_pyg_batch(A_weekend_input)
         Location_location_input, Location_location_input_weights = prepare_pyg_batch(Location_location_input)
 
         Temporal_input = Temporal_input.view(Temporal_input.size(0) * Temporal_input.size(1), Temporal_input.size(2))
-        Temporal_week_input = Temporal_week_input.view(Temporal_week_input.size(0) * Temporal_week_input.size(1), Temporal_week_input.size(2))
-        Temporal_weekend_input = Temporal_weekend_input.view(Temporal_weekend_input.size(0) * Temporal_weekend_input.size(1), Temporal_weekend_input.size(2))
+        Temporal_week_input = Temporal_week_input.view(Temporal_week_input.size(0) * Temporal_week_input.size(1),
+                                                       Temporal_week_input.size(2))
+        Temporal_weekend_input = Temporal_weekend_input.view(
+            Temporal_weekend_input.size(0) * Temporal_weekend_input.size(1), Temporal_weekend_input.size(2))
         Distance_input = Distance_input.view(Distance_input.size(0) * Distance_input.size(1), Distance_input.size(2))
         Duration_input = Duration_input.view(Duration_input.size(0) * Duration_input.size(1), Duration_input.size(2))
-        Location_time_input = Location_time_input.view(Location_time_input.size(0) * Location_time_input.size(1), Location_time_input.size(2))
-
+        Location_time_input = Location_time_input.view(Location_time_input.size(0) * Location_time_input.size(1),
+                                                       Location_time_input.size(2))
 
         out_temporal = F.elu(self.arma_conv_temporal(Temporal_input, A_input, A_input_weights))
         out_temporal = self.dropout_temporal(out_temporal)
@@ -150,21 +145,20 @@ class GNNUS_BaseModel(nn.Module):
 
         out_location_location = self.dense_location_time(Location_time_input)
 
-        out_dense = torch.tensor(2.) * out_location_location + torch.tensor(2.) * out_location_time
+        out_dense = (torch.tensor(2.) * out_location_location) + (torch.tensor(2.) * out_location_time)
         out_dense = self.dense_location_location(out_dense)
 
         out_gnn = (
-                torch.tensor(1.) * out_temporal
-                + torch.tensor(1.) * out_week_temporal
-                + torch.tensor(1.) * out_weekend_temporal
-                + torch.tensor(1.) * out_distance
-                + torch.tensor(1.) * out_duration
-                + torch.tensor(1.) * out_dense
+                (torch.tensor(1.) * out_temporal)
+                + (torch.tensor(1.) * out_week_temporal)
+                + (torch.tensor(1.) * out_weekend_temporal)
+                + (torch.tensor(1.) * out_distance)
+                + (torch.tensor(1.) * out_duration)
         )
         out_gnn = self.output_gnn(out_gnn)
         out = (
-                torch.tensor(1.) * out_dense
-                + torch.tensor(1.) * out_gnn
+                (torch.tensor(1.) * out_dense)
+                + (torch.tensor(1.) * out_gnn)
         )
 
         return out

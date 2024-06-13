@@ -604,6 +604,7 @@ class PoiCategorizationDomain:
                 max_user = i
 
         num_classes = max(y_train.flatten()) + 1
+
         max_size = max_size_matrices
         learning_rate = 0.001
 
@@ -653,7 +654,7 @@ class PoiCategorizationDomain:
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
         self.loss_fn = torch.nn.CrossEntropyLoss()  # Automatically applies Softmax for you
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)  #
+        self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)
         self.batch_size = max_size * 4
         print("\nTamanho do batch_size: ", self.batch_size)
 
