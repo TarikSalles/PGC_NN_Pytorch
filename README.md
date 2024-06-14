@@ -207,7 +207,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ### Porcentagem de Locais por Categoria
 
-![Alabama](Tabelas/Alabama/porcentagem_categorias.png)
+![Alabama](https://drive.google.com/uc?export=view&id=1PolNDWkmCF8gWeY0z57y3qCI_H6xWLHY)
 
 ### Tamanho de Batch 36
 
@@ -223,7 +223,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 100
 
 
-![Alabama 36 batch 100 épocas ](Tabelas/Alabama/36_100.png)
+![Alabama 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1YhZ4bteGNbBNrDxiNJMBhFH9y1VM44G8)
 
 
 
@@ -235,11 +235,11 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Alabama 48 batch 50 épocas ](Tabelas/Alabama/48_50.png)
+![Alabama 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1LD-8RKg50QOGhJ8hYh3drBj--adK3440)
 
 
 ####     Número de Épocas 100
-![Alabama 48 batch 100 épocas ](Tabelas/Alabama/48_100.png)
+![Alabama 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1s4qQrdpG8-06JE8uGhwSRF8hyaJjcw0s)
 
 ##
 ## Arizona
@@ -247,7 +247,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ### Porcentagem de Locais por Categoria
 
-![Arizona](Tabelas/Arizona/porcentagem_categorias.png)
+![Arizona](https://drive.google.com/uc?export=view&id=1YLhW8npATnjKoTWx1PvCnV_9iOxhZSCk)
 
 ### Tamanho de Batch 36
 
@@ -257,12 +257,12 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Arizona 36 batch 50 épocas ](Tabelas/Arizona/36_50.png)
+![Arizona 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1B-F5a1jpyYQOwKH9ww09yd-ad2QjHdiO)
 
 
 ####     Número de Épocas 100
 
-![Arizona 36 batch 100 épocas ](Tabelas/Arizona/36_100.png)
+![Arizona 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1C9fXhw-tOnuszjZnrjWfLH72KO8uzCYm)
 
 
 
@@ -274,12 +274,12 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Arizona 48 batch 50 épocas ](Tabelas/Arizona/48_50.png)
+![Arizona 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1IdKx042yC73i5iSbSfZwmY6tSWAaqLld)
 
 
 ####     Número de Épocas 100
 
-![Arizona 48 batch 100 épocas ](Tabelas/Arizona/48_100.png)
+![Arizona 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=16YTvMz353tc1Rj4Fgmeo-TXCEz-85gcU)
 
 
 ##
@@ -288,7 +288,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ### Porcentagem de Locais por Categoria
 
-![Virginia](Tabelas/Virginia/porcentagem_categorias.png)
+![Virginia](https://drive.google.com/uc?export=view&id=1YLzfl6aWV87sjq8nlpHFgqKN_pfJROt4)
 
 ### Tamanho de Batch 36
 
@@ -298,13 +298,13 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Virginia 36 batch 50 épocas ](Tabelas/Virginia/36_50.png)
+![Virginia 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1lAhKT1V8pe0Q-hTQdA6WnTRb9wAHeM8-)
 
 
 ####     Número de Épocas 100
 
 
-![Virginia 36 batch 100 épocas ](Tabelas/Virginia/36_100.png)
+![Virginia 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1P_ViSV_auJ9Zd9S9OF5OuvTBfhnujnwg)
 
 
 
@@ -316,11 +316,11 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Virginia 48 batch 50 épocas ](Tabelas/Virginia/48_50.png)
+![Virginia 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1WP3uO-l1pSHKd7vDwp4rjUyfj5_NY-im)
 
 
 ####     Número de Épocas 100
-![Virginia 48 batch 100 épocas ](Tabelas/Virginia/48_100.png)
+![Virginia 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1SaJEFrIv92YQHkfQk7IvRu-FL1-cI7yB)
 
 #
 # Resultados Gerais
