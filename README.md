@@ -217,7 +217,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 ####     Número de Épocas 50
 
 
-![Alabama 36 batch 50 épocas ](Tabelas/Alabama/36_50.png)
+![Alabama 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1efgDLadQWDWZf5DNQcU2_LJ2-MGiZN-r)
 
 
 ####     Número de Épocas 100
