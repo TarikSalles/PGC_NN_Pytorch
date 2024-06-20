@@ -137,13 +137,14 @@ class GNNUS_BaseModel(nn.Module):
         out_duration = self.dropout_duration(out_duration)
         out_duration = F.softmax(self.arma_conv_final_duration(out_duration, A_input, A_input_weights))
 
-        out_location_time = F.elu(
+        
+        out_location_location = F.elu(
             self.arma_conv_location_time(Location_time_input, Location_location_input, Location_location_input_weights))
-        out_location_time = self.dropout_location_time(out_location_time)
-        out_location_time = F.softmax(self.arma_conv_final_location_time(out_location_time, Location_location_input,
+        out_location_location = self.dropout_location_time(out_location_location)
+        out_location_location = F.softmax(self.arma_conv_final_location_time(out_location_location, Location_location_input,
                                                                          Location_location_input_weights))
 
-        out_location_location = self.dense_location_time(Location_time_input)
+        out_location_time = self.dense_location_time(Location_time_input)
 
         out_dense = (torch.tensor(2.) * out_location_location) + (torch.tensor(2.) * out_location_time)
         out_dense = self.dense_location_location(out_dense)
