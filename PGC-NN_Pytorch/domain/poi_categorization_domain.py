@@ -2,8 +2,9 @@ import json
 
 import numpy as np
 import pandas as pd
+
 import spektral as sk
-import spektral.layers
+import spektral
 import torch
 from sklearn.metrics import classification_report
 from sklearn.model_selection import KFold
@@ -13,6 +14,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import TensorDataset
 from torch_geometric.data import DataLoader
 from torch_geometric.graphgym import optim
+from sklearn.metrics import roc_curve
 
 from extractor.file_extractor import FileExtractor
 from globals import Configurations
@@ -21,7 +23,9 @@ from loader.poi_categorization_loader import PoiCategorizationLoader
 from model.gnn_base_model_for_transfer_learning import GNNUS_BaseModel
 from utils.nn_preprocessing import top_k_rows, split_graph, \
     top_k_rows_category_user_tracking, prepare_pyg_batch, one_hot_decoding_predicted
-
+from torchsummary import summary
+from spektral.utils import normalized_laplacian,normalized_adjacency
+from spektral.utils import convolution
 
 class PoiCategorizationDomain:
 
@@ -150,7 +154,7 @@ class PoiCategorizationDomain:
 
         location_time = location_time[idx]
         location_location = location_location[idx[:, None], idx].toarray()
-        location_location = sk.layers.GCNConv.preprocess(location_location)
+        #location_location = sk.layers.GCNConv.preprocess(location_location)
 
         return location_time, location_location
 
@@ -276,9 +280,20 @@ class PoiCategorizationDomain:
             for i in range(number_of_matrices):
 
                 idx = idxs[i]
-                matrices_list.append(sk.layers.ARMAConv.preprocess(user_matrices[i]))
-                matrices_week_list.append(sk.layers.ARMAConv.preprocess(user_matrices_week[i]))
-                matrices_weekend_list.append(sk.layers.ARMAConv.preprocess(user_matrices_weekend[i]))
+                ##Remover Preprocess
+                
+                #matrices_list.append(convolution.rescale_laplacian(normalized_laplacian(user_matrices[i], symmetric=True)))
+                #matrices_week_list.append(convolution.rescale_laplacian(normalized_laplacian(user_matrices_week[i], symmetric=True)))
+                #matrices_weekend_list.append(convolution.rescale_laplacian(normalized_laplacian(user_matrices_weekend[i], symmetric=True)))
+                
+
+                matrices_list.append(normalized_adjacency(user_matrices[i]))
+                matrices_week_list.append(normalized_adjacency(user_matrices_week[i]))
+                matrices_weekend_list.append(normalized_adjacency(user_matrices_weekend[i]))
+                
+                #matrices_list.append(user_matrices[i])
+                #matrices_week_list.append(user_matrices_week[i])
+                #matrices_weekend_list.append(user_matrices_weekend[i])
 
                 user_temporal_matrix = user_temporal_matrices[idx]
                 temporal_matrices_list.append(self._min_max_normalize(user_temporal_matrix))
@@ -300,7 +315,9 @@ class PoiCategorizationDomain:
                 )
                 user_location_time = self._min_max_normalize(user_location_time)
                 location_time_list.append(user_location_time)
-                user_location_location = spektral.layers.ARMAConv.preprocess(user_location_location)
+                user_location_location = normalized_adjacency(user_location_location)
+
+                #user_location_location = convolution.rescale_laplacian(normalized_laplacian(user_location_location, symmetric=True))
                 location_location_list.append(user_location_location)
 
                 for j in user_visited[idx]:
@@ -366,11 +383,15 @@ class PoiCategorizationDomain:
         if n_splits == 1:
             skip = True
             n_splits = 2
+        
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=0)
-
+        import joblib
+        #splits = list(kf.split(adjacency_list))
+        #joblib.dump(splits, f'kfold_splits_{week_type}.pkl')
+        splits = list(joblib.load(f'kfold_splits_{week_type}.pkl'))
         folds = []
         classes_weights = []
-        for train_indexes, test_indexes in kf.split(adjacency_list):
+        for train_indexes, test_indexes in splits:
 
             fold, class_weight = (
                 self._split_train_test(
@@ -648,14 +669,22 @@ class PoiCategorizationDomain:
             exit()
 
         # Model setup and hyperparameters
+        torch.manual_seed(seed)    
+        np.random.seed(seed)       
+
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)  
+
         self.device = torch.device(Configurations.DEVICE)
-        self.model = GNNUS_BaseModel(num_classes, max_size, max_size_sequence, self.features_num_columns).to(
+        self.batch_size = 512
+        self.model = GNNUS_BaseModel(self.batch_size,num_classes, max_size, max_size_sequence, self.features_num_columns).to(
             self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
-        self.loss_fn = torch.nn.CrossEntropyLoss()  # Automatically applies Softmax for you
+
+     
 
         self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=100, verbose=True)
-        self.batch_size = max_size * 4
+        
         print("\nTamanho do batch_size: ", self.batch_size)
 
         # TOSHOW: Será que usar o LabelEncoder ao inves de np_utils.to_categorical
@@ -666,16 +695,54 @@ class PoiCategorizationDomain:
         y_train_tensor = torch.tensor(y_train_encoded, dtype=torch.float32).to(self.device)
         y_test_tensor = torch.tensor(y_test_encoded, dtype=torch.float32).to(self.device)
 
+        
         # Creating data loaders
         input_train_tensor = [torch.tensor(data, dtype=torch.float32).to(self.device) for data in input_train]
         input_test_tensor = [torch.tensor(data, dtype=torch.float32).to(self.device) for data in input_test]
 
+       # from imblearn.over_sampling import SMOTE
+       # X_train_np = input_train_tensor.numpy()
+       # y_train_np = y_train_tensor.numpy()
+        #X_resampled, y_resampled = smote.fit_resample(X_train_np, y_train_np)
+        #input_train_tensor_resampled = torch.tensor(X_resampled, dtype=torch.float32)
+        #y_train_tensor_resampled = torch.tensor(y_resampled, dtype=torch.long)
+
+        #train_dataset_resampled = TensorDataset(input_train_tensor_resampled, y_train_tensor_resampled)
+
+
+
+        #smote = SMOTE(random_state=42)
+
         train_dataset = TensorDataset(*input_train_tensor, y_train_tensor)
         test_dataset = TensorDataset(*input_test_tensor, y_test_tensor)
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
 
+        #train_loader= DataLoader(train_dataset_resampled, batch_size=self.batch_size, shuffle=False)
+
+        
         # Training the model
+        from collections import Counter
+        class_counter = Counter()
+        for loader in train_loader:  
+                inputs, targets = loader[:-1], loader[-1].float()
+                inputs, targets = [i.to(self.device) for i in inputs], targets.to(self.device)  
+
+                class_indices = one_hot_decoding_predicted(targets.cpu().detach().numpy())
+
+                class_counter.update(class_indices.tolist())
+
+        class_counts = torch.tensor([class_counter[i] for i in range(7)], dtype=torch.float32)
+
+
+        class_weights = 1.0 / class_counts.float()  
+        class_weights = class_weights / class_weights.sum() 
+
+
+        class_weights = torch.tensor(class_weights, dtype=torch.float32)
+
+
+        self.loss_fn = torch.nn.CrossEntropyLoss()
         h = self.train_model(train_loader, test_loader, epochs)
         report, accuracy = self.evaluate_model(test_loader)
 
@@ -694,7 +761,18 @@ class PoiCategorizationDomain:
             'val_acc': [],
             'val_loss': []
         }
+        
 
+
+        first_batch = next(iter(train_loader))
+        input_shapes = [input_tensor.shape[1:] for input_tensor in first_batch[:-1]]  # Skip the target
+        
+        # Initialize the model parameters with a dummy forward pass
+        dummy_inputs = [torch.randn(1, *shape).to(self.device) for shape in input_shapes]
+        self.model(*dummy_inputs)
+
+        # Now print the model summary
+        summary(self.model, input_shapes)
         self.model.train()
 
         for epoch in range(epochs):
@@ -708,10 +786,20 @@ class PoiCategorizationDomain:
                 self.optimizer.zero_grad()
 
                 inputs, targets = loader[:-1], loader[-1].float()
-                outputs = self.model(*inputs)
-                outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
 
-                loss = self.loss_fn(outputs, targets)
+                
+                inputs, targets = [i.to(self.device) for i in inputs], targets.to(self.device)  
+                outputs = self.model(*inputs)
+
+                #outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
+                #max_values = outputs.max(dim=2)[0]  # Resulting tensor shape will be [2, 3]
+                #max_values = max_values.view(-1)
+                decoded_targets = torch.tensor(one_hot_decoding_predicted(targets.cpu().detach().numpy()), dtype=torch.long)  # Targets should be long
+                
+
+                #print(decoded_targets)
+
+                loss = self.loss_fn(outputs,decoded_targets)
                 loss.backward()
                 self.optimizer.step()
 
@@ -719,9 +807,9 @@ class PoiCategorizationDomain:
                 running_loss += loss.item()
                 total += targets.size(0)
 
+                outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
                 y_pred.extend(one_hot_decoding_predicted(outputs.cpu().detach().numpy()))
                 y_true.extend(one_hot_decoding_predicted(targets.cpu().detach().numpy()))
-
                 report = classification_report(y_true, y_pred, output_dict=True)
                 correct = report['accuracy']
 
@@ -742,6 +830,8 @@ class PoiCategorizationDomain:
             val_running_loss = 0.0
             val_correct = 0
             val_total = 0
+            y_pred_val = []
+            y_true_val = []
 
             with torch.no_grad():
 
@@ -751,9 +841,18 @@ class PoiCategorizationDomain:
                     inputs, targets = [i.to(self.device) for i in inputs], targets.to(self.device)
 
                     outputs = self.model(*inputs)
-                    outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
+                    #outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
+                    decoded_outputs = torch.tensor(((outputs.cpu().detach().numpy())), dtype=torch.float32)
+                    decoded_targets = torch.tensor(one_hot_decoding_predicted(targets.cpu().detach().numpy()), dtype=torch.long)  # Targets should be long
+                    
 
-                    loss = self.loss_fn(outputs, targets)
+                    decoded_outputs = outputs.reshape(-1, 7)  # Shape: [1024 * 3, 7]
+                    #max_values = outputs.max(dim=2)[0]  # Resulting tensor shape will be [2, 3]
+                    
+                    #max_values = max_values.view(-1)
+                    decoded_targets = torch.tensor(one_hot_decoding_predicted(targets.cpu().detach().numpy()), dtype=torch.long)  # Targets should be long
+
+                    loss = self.loss_fn(outputs,decoded_targets)
                     val_running_loss += loss.item()
                     val_total += targets.size(0)
 
@@ -764,16 +863,26 @@ class PoiCategorizationDomain:
                     #y_pred.extend(one_hot_decoding_predicted(np.array(inputs)))
                     #y_true.extend(one_hot_decoding_predicted(np.array(targets)))
 
+                    outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
 
                     val_correct += (outputs.argmax(dim=-1) == targets.argmax(dim=-1)).float().mean().item()
 
+                    y_pred_val.extend(one_hot_decoding_predicted(outputs.cpu().numpy()))
+                    y_true_val.extend(one_hot_decoding_predicted(targets.cpu().numpy()))
+                    #print(self.find_optimal_threshold_multiclass(y_true_val,y_pred_val))
+
+                    #exit(0)
+
+            report_val = classification_report(y_true_val, y_pred_val, output_dict=True)
+
             val_epoch_loss = val_running_loss / len(test_loader)
-            val_epoch_acc =  100* val_correct/val_total
+            val_epoch_acc =  report_val['accuracy']
             history['val_loss'].append(val_epoch_loss)
             history['val_acc'].append(val_epoch_acc)
 
             print(
-                f'Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.2f}, Val_Loss: {val_epoch_loss:.4f}, Val_Acc: {val_epoch_acc:.2f}%')
+                f'Epoch {epoch + 1}/{epochs} - Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.2f}, Val_Loss: {val_epoch_loss:.4f}, Val_Acc: {val_epoch_acc:.2f}')
+        
 
         return history
 
@@ -785,6 +894,7 @@ class PoiCategorizationDomain:
             y_true = []
             for loaders in test_loader:
                 inputs, targets = loaders[:-1], loaders[-1].float()
+                inputs, targets = [i.to(self.device) for i in inputs], targets.to(self.device)  
 
                 outputs = self.model(*inputs)
                 outputs = outputs.view(targets.size(0), targets.size(1), targets.size(2))
@@ -796,6 +906,49 @@ class PoiCategorizationDomain:
         report = classification_report(y_true, y_pred, output_dict=True)
         print(report)
         return report, report['accuracy']
+
+    def find_optimal_threshold_multiclass(self,y_true, y_predicted):
+        """
+        Finds the optimal thresholds for each class in a multiclass classification problem using one-vs-rest strategy.
+        
+        Parameters:
+        - y_true: array-like, shape (n_samples,) True labels.
+        - y_predicted: list or array-like, shape (n_samples, n_classes) Predicted probabilities for each class.
+        
+        Returns:
+        - optimal_thresholds: dict A dictionary where the key is the class index, and the value is the optimal threshold for that class.
+        """
+        # Convert y_predicted to a numpy array if it's a list
+        print(f"y_true type {type(y_true)}, content: {y_true}")
+        print("\n\n")
+        print(f"y_predicted type {type(y_predicted)}, content: {y_predicted}")
+        
+        y_predicted = np.array(y_predicted)
+        
+        n_classes = y_predicted.shape[1]
+        optimal_thresholds = {}
+
+        for class_index in range(n_classes):
+            # Create a one-vs-rest ground truth array for the current class
+            y_true_ovr = (y_true == class_index).astype(int)
+            
+            # Get the predicted probabilities for the current class
+            y_pred_class = y_predicted[:, class_index]
+            
+            # Compute ROC curve for the current class
+            fpr, tpr, thresholds = roc_curve(y_true_ovr, y_pred_class)
+            
+            # Calculate the distance from the point (1, 0) for each threshold
+            distances = np.sqrt((1 - tpr) ** 2 + (fpr) ** 2)
+            
+            # Find the threshold with the minimum distance to (1, 0)
+            optimal_idx = np.argmin(distances)
+            optimal_threshold = thresholds[optimal_idx]
+            
+            # Store the optimal threshold for the current class
+            optimal_thresholds[class_index] = optimal_threshold
+
+        return optimal_thresholds
 
     def heatmap_matrices(self, fold_number, matrices, names, output_dir):
 
