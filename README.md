@@ -54,6 +54,12 @@
 
     - **PyTorch**: Feita de forma externa com `torch.nn.functional`.
 
+4. **Ativação final do modelo**:
+   
+    - **TensorFlow**: Deve ser utilizado uma SoftMax no final do modelo.
+
+    - **PyTorch**: Feita pela própria função de perda.
+
 
 5. **Inicialização e Forward Pass**:
     
@@ -68,10 +74,10 @@
 ### Principais Mudanças no Treino e na Avaliação
 
 1. **Conversão de Dados**:
-    - **TensorFlow**: Os dados são manipulados em matrizes `numpy` diretamente.
+    - **TensorFlow**: Os dados são manipulados em matrizes `numpy` diretamente. E devem ser passados para o modelo na forma one-hot encoded.
 
     - **PyTorch**: Os dados devem ser convertidos em tensores utilizando `torch.tensor` e movidos para o dispositivo
-      apropriado (em ordem de disponibilidade: MPS, GPU, CPU) utilizando `.to(device)` durante o treino.
+      apropriado (em ordem de disponibilidade: MPS, GPU, CPU) utilizando `.to(device)` durante o treino. Devem ser passados para o modelo na forma regular, sem one-hot encoding.
 
 
 2. **Compilação e Treinamento do Modelo**:
@@ -99,11 +105,18 @@
     - **PyTorch**: A avaliação é feita em um loop separado na função `evaluate_model`, utilizando `torch.no_grad()` para desativar o
       cálculo do gradiente durante a inferência.
 
-5. **Método da Redução da Taxa de Aprendizado (Pytorch)**:
+5. **Função de perda do Modelo**:
+   
+    - **TensorFlow**: Utiliza a função de perda `tf.keras.losses.CategoricalCrossentropy`. 
+
+    - **PyTorch**: Utiliza a função de perda `torch.nn.CrossEntropyLoss`
+
+
+6. **Método da Redução da Taxa de Aprendizado (Pytorch)**:
    
     - Foi utilizado `torch.optim.lr_scheduler.ReduceLROnPlateau` para fazer uma redução gradual da taxa de aprendizado do modelo caso não haja melhoras significativas (um limite determinado por `threshold`) em um número de épocas determinado como `patience` para uma determinada métrica, a taxa de aprendizado é então reduzida em um valor do parâmetro `factor`. Mesmo não sendo crucial para o funcionamento do modelo, a redução da taxa de aprendizado é uma boa prática para que o modelo prossiga para um maior desempenho.
 
-6. **Salvar o modelo**:
+7. **Salvar o modelo**:
    
     - **TensorFlow**: Utiliza da função `.save()` do próprio modelo para o salvar como arquivo `.h5`.
 
@@ -195,144 +208,36 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 # Resultados Obtidos 
 
-  - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado os Estados `Alabama`, `Arizona` e `Virginia` para comparação, todos dos Estados Unidos (US). Foi utilizado como número de épocas para cada fold dos modelos `50` e `100`. Além disso, foi utilizado como tamanho de batch `36` e `48`.
-  - Foi construído uma tabela para cada combinação de tamanho de batch e épocas para cada Estado, para fins de comparação das 3 métricas para cada categoria.
+  - Para a análise dos resultados obtidos entre os dois modelos, foi utilizado o Estado `Texas` para comparação. Com base no artigo `Combining Recurrent and Graph Neural Networks to Predict the Next Place’s Category` os dados foram filtrados somente com usuários com mais de 40 instâncias no dataset, e, após isso, foram seleciodos de forma aleatória 1500 usuários. Uma mudança em relação ao artigo é a definição de um limite superior de instâncias, devido ao fato de que há usuários que possuam mais de 18.000 lugares visitados e, com isso, a geração de matrizes para esse usuário não é concluída por limitações do código original. Por isso, foi definido um limite superior de 7.000 instâncias e, após isso, houve a geração das entradas.  
+  O artigo não utilizou um número de batch ou épocas específico, porém, para fins de comparação, foi utilizado um tamanho bach de 512, e 50 épocas. 
+  - Foi construído uma tabela para fins de comparação das 3 métricas (fscore,recall e precisão) para cada categoria.
   - Cada tabela possui outras 3 tabelas distintas , cada uma mostrando os resultados de uma certa métrica. Cada tabela possui uma coluna, que apresenta o resultado da média de todos os folds para cada métrica, juntamente com um erro para esse valor.
   - A média utilizada é a aritmética, que é calculada somando os valores de todos os folds de uma determinada métrica e dividindo pelo número de folds total(no caso deste exemplo, 5).
   - O erro é calculado da seguinte forma: (max_fold - min_fold) / (num_folds). Onde: max_fold = maior valor de um fold para uma determinada métrica. min_fold = menor valor de um fold para uma determinada métrica. num_folds = número total de folds .
-  - A seguir, todas as tabelas serão mostradas.
 ##
-## Alabama
-##
-
-### Porcentagem de Locais por Categoria
-
-![Alabama](https://drive.google.com/uc?export=view&id=1PolNDWkmCF8gWeY0z57y3qCI_H6xWLHY)
-
-### Tamanho de Batch 36
-
-
-
-
-####     Número de Épocas 50
-
-
-![Alabama 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1efgDLadQWDWZf5DNQcU2_LJ2-MGiZN-r)
-
-
-####     Número de Épocas 100
-
-
-![Alabama 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1YhZ4bteGNbBNrDxiNJMBhFH9y1VM44G8)
-
-
-
-### Tamanho de Batch 48
-
-
-
-
-####     Número de Épocas 50
-
-
-![Alabama 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1LD-8RKg50QOGhJ8hYh3drBj--adK3440)
-
-
-####     Número de Épocas 100
-![Alabama 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1s4qQrdpG8-06JE8uGhwSRF8hyaJjcw0s)
-
-##
-## Arizona
+## Texas
 ##
 
 ### Porcentagem de Locais por Categoria
 
-![Arizona](https://drive.google.com/uc?export=view&id=1YLhW8npATnjKoTWx1PvCnV_9iOxhZSCk)
 
-### Tamanho de Batch 36
+![Texas](https://drive.google.com/uc?export=view&id=1OqPXj-G-fOhvU9HYAo5HBwILKvocP-PN)
 
-
-
-
-####     Número de Épocas 50
-
-
-![Arizona 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1B-F5a1jpyYQOwKH9ww09yd-ad2QjHdiO)
-
-
-####     Número de Épocas 100
-
-![Arizona 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1C9fXhw-tOnuszjZnrjWfLH72KO8uzCYm)
-
-
-
-### Tamanho de Batch 48
+### Tamanho de Batch 512
 
 
 
 
 ####     Número de Épocas 50
 
+![Texas 512 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1-mUqKYlB0M8u-agbCI1oFg69m5sGApf-)
 
-![Arizona 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1IdKx042yC73i5iSbSfZwmY6tSWAaqLld)
-
-
-####     Número de Épocas 100
-
-![Arizona 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=16YTvMz353tc1Rj4Fgmeo-TXCEz-85gcU)
-
-
-##
-## Virginia
-##
-
-### Porcentagem de Locais por Categoria
-
-![Virginia](https://drive.google.com/uc?export=view&id=1YLzfl6aWV87sjq8nlpHFgqKN_pfJROt4)
-
-### Tamanho de Batch 36
-
-
-
-
-####     Número de Épocas 50
-
-
-![Virginia 36 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1lAhKT1V8pe0Q-hTQdA6WnTRb9wAHeM8-)
-
-
-####     Número de Épocas 100
-
-
-![Virginia 36 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1P_ViSV_auJ9Zd9S9OF5OuvTBfhnujnwg)
-
-
-
-### Tamanho de Batch 48
-
-
-
-
-####     Número de Épocas 50
-
-
-![Virginia 48 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1WP3uO-l1pSHKd7vDwp4rjUyfj5_NY-im)
-
-
-####     Número de Épocas 100
-![Virginia 48 batch 100 épocas ](https://drive.google.com/uc?export=view&id=1SaJEFrIv92YQHkfQk7IvRu-FL1-cI7yB)
-
-#
-# Resultados Gerais
-#
-
-  Todos os resultados obtidos para os Estados `Alabama, Arizona, Virginia` , com o número de épocas `50, 100` e tamanho de batch `36, 48`  podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacao_Metricas_PGC_Alabama_Arizona_Virginia.ipynb). Não é necessário executar o notebook, os resultados já estão 
-disponíveis. Mas, caso queira executá-lo, favor seguir as instruções abaixo.
+ Os resultados obtidos para o  `Texas` podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacoes_Metricas/Comparacao_Metricas_PGC_Texas.ipynb). Não é necessário executar o notebook, os resultados já estão disponíveis. Mas, caso queira executá-lo, favor seguir as instruções abaixo.
 
 ## Como executar o notebook .ipynb como os resultados das métricas
 
- - Para executar o notebook .ipynb, é necessário possuir a pasta contendo os resultados dos modelos, para isso, faça o download da seguinte [pasta do google drive](https://drive.google.com/drive/folders/1eyRU37sItd8dNA601Ykgwm2vkIDoHQwG?usp=drive_link).
- - A pasta contêm os resultados da execução separados por modelo (Pytorch e Tensorflow) e por época e tamanho de batch.
- - Além desses conteúdos, a pasta tambêm contem os k_folds utilizados pelos modelos (`k_folds_torch`), e os dados `.csv` dos Estados utilizados na pasta `checkins`.
- - Após baixar o arquivo, extrai o .zip em seu google drive.
- - Caso opte por colocar a pasta extraída no google drive (Testes_Acuracia), monte o google drive no notebook colab e o execute normalmente.
+ - Para executar o notebook .ipynb, é necessário possuir a pasta contendo os resultados dos modelos, para isso, faça o download da seguinte [pasta do google drive](https://drive.google.com/drive/folders/1KsuyP3y134r3_Y-W5rFvLYL4Nvx4cZSH?usp=sharing).
+ - A pasta contêm os resultados da execução separados por modelo (Pytorch e Tensorflow).
+ - Além desses conteúdos, a pasta tambêm contem os k_folds utilizados pelos modelos.
+ - Após baixar o arquivo, extraia o .zip em seu google drive.
+ - Caso opte por colocar a pasta extraída no google drive, monte o google drive no notebook colab e o execute normalmente.
