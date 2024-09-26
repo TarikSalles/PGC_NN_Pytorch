@@ -4,11 +4,11 @@
 
 ### Dados utilizados pelo modelo PGC-NN
 
-- O modelo PGC-NN utiliza do conjunto de dados [Gowalla](https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN_Pytorch/docs/matrix_generation.md).
+- O modelo PGC-NN utiliza do conjunto de dados [Gowalla](https://snap.stanford.edu/data/loc-Gowalla.html). O modelo requer que esses dados sejam separados por espaços ou territórios, com um certo conjunto de colunas que determinam as características dos pontos de interesse (PoI). Para saber mais sobre o formato dos dados, [clique aqui](https://github.com/TarikSalles/PGC_NN_Pytorch/blob/main/PGC-NN_Pytorch/docs/matrix_generation.md).
     
 ### Como Executar o modelo PGC-NN
 
-- Afim de executar o modelo PGC-NN nas versões de Tensorflow e Pytorch, assim como gerar os dados no formato necessário para esses, leia as  [seguintes instruções](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/PGC-NN_Pytorch/README.md).
+- Afim de executar o modelo PGC-NN nas versões de Tensorflow e Pytorch, assim como gerar os dados no formato necessário para esses, leia as  [seguintes instruções](https://github.com/TarikSalles/PGC_NN_Pytorch/blob/main/PGC-NN_Pytorch/README.md).
 
 
 ## Diferenças e Mudanças entre as versões Pytorch e Tensorflow
@@ -232,7 +232,7 @@ Isso foi feito a comparação entre os dois modelos com dados similares, tendo e
 
 ![Texas 512 batch 50 épocas ](https://drive.google.com/uc?export=view&id=1-mUqKYlB0M8u-agbCI1oFg69m5sGApf-)
 
- Os resultados obtidos para o  `Texas` podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Resultados_Alabama/blob/main/Comparacoes_Metricas/Comparacao_Metricas_PGC_Texas.ipynb). Não é necessário executar o notebook, os resultados já estão disponíveis. Mas, caso queira executá-lo, favor seguir as instruções abaixo.
+ Os resultados obtidos para o  `Texas` podem ser vistos no seguinte [notebook .ipynb](https://github.com/TarikSalles/PGC_NN_Pytorch/blob/main/Comparacoes_Metricas/Comparacao_Metricas_PGC_Texas.ipynb). Não é necessário executar o notebook, os resultados já estão disponíveis. Mas, caso queira executá-lo, favor seguir as instruções abaixo.
 
 ## Como executar o notebook .ipynb como os resultados das métricas
 
