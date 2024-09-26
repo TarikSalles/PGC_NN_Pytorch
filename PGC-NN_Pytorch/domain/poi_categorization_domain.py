@@ -386,9 +386,9 @@ class PoiCategorizationDomain:
         
         kf = KFold(n_splits=n_splits, shuffle=True, random_state=0)
         import joblib
-        #splits = list(kf.split(adjacency_list))
+        splits = list(kf.split(adjacency_list))
         #joblib.dump(splits, f'kfold_splits_{week_type}.pkl')
-        splits = list(joblib.load(f'kfold_splits_{week_type}.pkl'))
+        #splits = list(joblib.load(f'kfold_splits_{week_type}.pkl'))
         folds = []
         classes_weights = []
         for train_indexes, test_indexes in splits:
